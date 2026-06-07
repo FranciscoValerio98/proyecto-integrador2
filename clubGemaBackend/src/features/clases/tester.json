@@ -1,0 +1,11 @@
+{
+  "horario_origen_id": 1,
+  "fecha_origen": "2026-03-08",
+  "cancha_id": 1,
+  "coordinador_id": 2,
+  "nivel_id": 1,
+  "hora_inicio": "10:00:00",
+  "hora_fin": "12:00:00",
+  "fecha_destino": "2026-03-10",
+  "motivo": "Mantenimiento preventivo de la cancha 1"
+}
