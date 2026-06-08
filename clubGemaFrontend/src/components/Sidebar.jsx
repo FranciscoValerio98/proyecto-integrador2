@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, GraduationCap, UserCog, CalendarRange,
     Settings, LogOut, MapPin, BarChart3, DollarSign,
-    ChevronDown, History, CheckCircle, Activity, 
+    ChevronDown, History, CheckCircle, Activity,
     TicketPercent, Megaphone, Ticket, ShieldAlert, Sparkles, Layers
 } from 'lucide-react';
 import { logoutService } from '../services/auth.service';
@@ -44,42 +44,21 @@ const Sidebar = ({ isOpen, onClose }) => {
             path: '/dashboard/admin'
         },
         {
-            title: 'Operaciones',
+            title: 'Gestión de Usuarios',
             type: 'dropdown',
             items: [
                 { icon: GraduationCap, label: 'Alumnos', path: '/dashboard/admin/students' },
                 { icon: UserCog, label: 'Coordinadores', path: '/dashboard/admin/teachers' },
-                { icon: CheckCircle, label: 'Validar Pagos', path: '/dashboard/admin/payment-validation' },
             ]
         },
         {
-            title: 'Academia',
+            title: 'Gestión del Club',
             type: 'dropdown',
             items: [
-                { icon: CalendarRange, label: 'Horarios Base', path: '/dashboard/admin/schedule' },
-                { icon: Layers, label: 'Reprogramaciones', path: '/dashboard/admin/reprogramaciones' },
+                { icon: CalendarRange, label: 'Horarios', path: '/dashboard/admin/schedule' },
                 { icon: MapPin, label: 'Sedes y Canchas', path: '/dashboard/admin/locations' },
                 { icon: BarChart3, label: 'Niveles', path: '/dashboard/admin/levels' },
-            ]
-        },
-        {
-            title: 'Marketing & Retención',
-            type: 'dropdown',
-            items: [
-                { icon: Megaphone, label: 'Publicaciones (Muro)', path: '/dashboard/admin/publications' },
-                { icon: Sparkles, label: 'Anuncios Carrusel', path: '/dashboard/admin/anuncios-beneficios' },
-                { icon: TicketPercent, label: 'Asignar Descuentos', path: '/dashboard/admin/benefits' },
-                { icon: Ticket, label: 'Pases de Invitado', path: '/dashboard/admin/guest-passes' },
-            ]
-        },
-        {
-            title: 'Sistema & Soporte',
-            type: 'dropdown',
-            items: [
-                { icon: Activity, label: "Control de Lesiones", path: "/dashboard/admin/injuries" },
-                { icon: History, label: 'Depurar Recuperaciones', path: '/dashboard/admin/delete-makeups' },
-                { icon: DollarSign, label: 'Catálogo de Precios', path: '/dashboard/admin/catalog' },
-                { icon: Settings, label: 'Configuración', path: '/dashboard/admin/settings' },
+                { icon: CheckCircle, label: 'Validar Pagos', path: '/dashboard/admin/payment-validation' },
             ]
         }
     ];

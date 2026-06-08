@@ -10,8 +10,7 @@ const AdminTeacherEdit = ({ teacherData, onBack, onSuccess }) => {
         nombres: teacherData.nombres || '',
         apellidos: teacherData.apellidos || '',
         email: teacherData.email || '',
-        telefono_personal: teacherData.telefono_personal || '',
-        especializacion: teacherData.datosRolEspecifico?.especializacion || ''
+        telefono_personal: teacherData.telefono_personal || ''
     });
 
     const handleChange = (e) => {
@@ -30,7 +29,7 @@ const AdminTeacherEdit = ({ teacherData, onBack, onSuccess }) => {
             const response = await apiFetch.patch(API_ROUTES.COORDINADORES.BY_ID(teacherData.id), formData);
 
             if (response.ok) {
-                toast.success("¡Expediente técnico actualizado!");
+                toast.success("¡Expediente actualizado!");
                 onSuccess(); // Refresca la lista y vuelve al inicio
             } else {
                 const error = await response.json();
@@ -96,25 +95,11 @@ const AdminTeacherEdit = ({ teacherData, onBack, onSuccess }) => {
 
                 {/* Especialización */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-                        <div className="flex items-center gap-3 mb-4">
-                            <GraduationCap className="text-orange-500" size={20} />
-                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Área Técnica</span>
-                        </div>
-                        <textarea
-                            name="especializacion"
-                            value={formData.especializacion}
-                            onChange={handleChange}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm font-bold outline-none h-40 resize-none focus:ring-2 focus:ring-orange-500/10"
-                            placeholder="Actualizar especialidad..."
-                        />
-                    </div>
-
                     <div className="bg-slate-900 p-6 rounded-3xl text-white">
                         <ShieldCheck className="text-orange-500 mb-3" size={24} />
                         <h4 className="text-xs font-black uppercase italic tracking-tighter">Seguridad de Datos</h4>
                         <p className="text-[9px] text-slate-400 mt-2 leading-relaxed uppercase">
-                            Cualquier cambio en el email afectará el inicio de sesión del coordinador. Use esta herramienta con precaución.
+                            Cualquier cambio en el email afectará en el envío de credenciales de inicio de sesión del coordinador.
                         </p>
                     </div>
                 </div>

@@ -7,9 +7,9 @@ export const VALID_ROLES = {
 export const VALID_ROLES_ARRAY = Object.values(VALID_ROLES);
 
 export const ROLES_DESCRIPTIONS = {
-  [VALID_ROLES.ALUMNO]: 'Estudiante de la academia',
-  [VALID_ROLES.COORDINADOR]: 'Coordinador de clases',
-  [VALID_ROLES.ADMINISTRADOR]: 'Administrador del sistema',
+  [VALID_ROLES.ALUMNO]: 'Alumno inscrito',
+  [VALID_ROLES.COORDINADOR]: 'Coordinador a cargo',
+  [VALID_ROLES.ADMINISTRADOR]: 'Administrador total',
 };
 
 export const ROLE_SPECIFIC_REQUIREMENTS = {

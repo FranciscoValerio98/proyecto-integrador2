@@ -4,9 +4,7 @@ import { prisma } from '../../../config/database.config.js';
 
 import { inscripcionService } from '../../inscripciones/inscripcion.service.js';
 import { inscripcionCronService } from '../../inscripciones/inscripcion-cron.service.js';
-import { recuperacionCronService } from '../../recuperaciones/recuperacion-cron.service.js';
 import { cumpleanosService } from '../../usuarios/services/cumpleanos.service.js';
-import { congelamientoCronService } from '../../congelamientos/congelamiento-cron.service.js';
 import { asistenciaCronService } from '../../asistencia/asistencia-cron.service.js';
 import { tokenCleanupService } from '../../auth/services/token-cleanup.service.js';
 import { claseCronService } from '../../clases/clase-cron.service.js';

@@ -1,5 +1,4 @@
 import { prisma } from '../../config/database.config.js';
-import { recuperacionService } from '../recuperaciones/recuperacion.service.js';
 import dayjs from 'dayjs';
 
 /**

@@ -12,38 +12,11 @@ import { API_ROUTES } from "../../constants/apiRoutes";
 const StudentSidebar = () => {
   const location = useLocation();
   const { logout, user } = useAuth();
-  const [hasNewNews, setHasNewNews] = useState(false);
 
   const [openMenus, setOpenMenus] = useState({
     'Salud y Rendimiento': false,
     'Administración': false
   });
-
-  useEffect(() => {
-    const checkNewsAlert = async () => {
-      try {
-        const response = await apiFetch.get(API_ROUTES.PUBLICACIONES.BASE);
-        const result = await response.json();
-        if (result.data && result.data.length > 0) {
-          const newestId = String(result.data[0].id);
-          const viewedId = Cookies.get('last_viewed_news');
-
-          if (viewedId !== newestId) {
-            setHasNewNews(true);
-          }
-        }
-      } catch (e) {
-        console.error("Error al verificar notificaciones:", e);
-      }
-    };
-
-    checkNewsAlert();
-
-    const handleNewsRead = () => setHasNewNews(false);
-    window.addEventListener('news_read', handleNewsRead);
-
-    return () => window.removeEventListener('news_read', handleNewsRead);
-  }, []);
 
   const toggleMenu = (title) => {
     setOpenMenus(prev => ({ ...prev, [title]: !prev[title] }));
@@ -57,34 +30,23 @@ const StudentSidebar = () => {
       path: "/dashboard/student"
     },
     {
-      title: "Mis Inscripciones", // 👈 Texto corregido para mayor claridad operativa
+      title: "Mis Inscripciones",
       type: "link",
-      icon: Calendar, // 👈 Usamos el icono de Calendario para que se vea más profesional
+      icon: Calendar,
       path: "/dashboard/student/myRegistrations"
     },
     {
-      title: "Muro de Noticias",
+      title: "Mis Pagos",
       type: "link",
-      icon: Megaphone,
-      path: "/dashboard/student/news",
-      hasAlert: hasNewNews
+      icon: CreditCard,
+      path: "/dashboard/student/payments"
     },
     {
-      title: "Salud y Rendimiento",
-      type: "dropdown",
-      items: [
-        { icon: Activity, label: "Mis Lesiones", path: "/dashboard/student/injuries" },
-        { icon: Ticket, label: "Mis Recuperaciones", path: "/dashboard/student/recoveries" },
-      ]
+      title: "Mi Perfil",
+      type: "link",
+      icon: User,
+      path: "/dashboard/student/profile"
     },
-    {
-      title: "Administración",
-      type: "dropdown",
-      items: [
-        { icon: CreditCard, label: "Mis Pagos", path: "/dashboard/student/payments" },
-        { icon: User, label: "Mi Perfil", path: "/dashboard/student/profile" },
-      ]
-    }
   ];
 
   return (
@@ -114,7 +76,7 @@ const StudentSidebar = () => {
           >
             {/* Efecto de brillo interior */}
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-            
+
             <UserPlus size={20} className="relative z-10 group-hover:scale-110 transition-transform" />
             <span className="relative z-10 text-[13px] font-black uppercase tracking-widest italic">Nueva Matrícula</span>
           </Link>

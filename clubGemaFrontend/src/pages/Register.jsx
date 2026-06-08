@@ -36,28 +36,17 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const [rolIdAlumno, setRolIdAlumno] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
-    const [tiposDocumento, setTiposDocumento] = useState([]);
 
     const [formData, setFormData] = useState({
-        nombres: '', apellidos: '', email: '', tipo_documento_id: '',
+        nombres: '', apellidos: '', email: '',
         numero_documento: '', password: '', telefono_personal: '',
-        fecha_nacimiento: '', genero: '', contacto_emergencia: '', parentesco: ''
+        fecha_nacimiento: '', genero: ''
     });
 
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const [resDocs, resRol] = await Promise.all([
-                    fetch(`${import.meta.env.VITE_API_URL}/tipos-documento`),
-                    fetch(`${import.meta.env.VITE_API_URL}/roles/nombre/Alumno`)
-                ]);
-                const dataDocs = await resDocs.json();
-                if (resDocs.ok && dataDocs.data) {
-                    setTiposDocumento(dataDocs.data);
-                    if (dataDocs.data.length > 0) {
-                        setFormData(prev => ({ ...prev, tipo_documento_id: dataDocs.data[0].id }));
-                    }
-                }
+                const resRol = await fetch(`${import.meta.env.VITE_API_URL}/roles/nombre/Alumno`);
                 const dataRol = await resRol.json();
                 if (resRol.ok && dataRol.data) setRolIdAlumno(dataRol.data.id);
             } catch (error) {
@@ -69,7 +58,7 @@ function Register() {
 
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
-        if (name === "telefono_personal" || name === "contacto_emergencia") {
+        if (name === "telefono_personal") {
             const onlyNums = value.replace(/\D/g, "").slice(0, 9);
             setFormData((prev) => ({ ...prev, [name]: onlyNums }));
         } else {
@@ -91,15 +80,11 @@ function Register() {
         try {
 
             // Separamos los datos básicos de los específicos del rol
-            const { contacto_emergencia, parentesco, ...datosBasicos } = formData;
+            const datosBasicos = formData;
 
             const payloadFinal = {
                 ...datosBasicos,
-                rol_id: rolIdAlumno,
-                datosRolEspecifico: {
-                    contacto_emergencia,
-                    parentesco
-                }
+                rol_id: rolIdAlumno
             };
 
             const response = await registerService(payloadFinal);
@@ -162,7 +147,7 @@ function Register() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
-                        {/* Grupo 1: Email y Pass */}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                             <div className="space-y-1.5 md:space-y-2 text-left">
                                 <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico *</label>
@@ -185,7 +170,6 @@ function Register() {
                             </div>
                         </div>
 
-                        {/* Grupo 2: Nombres y Género */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
                             <div className="space-y-1.5 md:space-y-2 text-left">
                                 <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombres *</label>
@@ -208,17 +192,7 @@ function Register() {
                             </div>
                         </div>
 
-                        {/* Grupo 3: Documentación */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-                            <div className="space-y-1.5 md:space-y-2 text-left">
-                                <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo Doc. *</label>
-                                <div className="relative">
-                                    <select name="tipo_documento_id" required value={formData.tipo_documento_id} onChange={handleChange} className="w-full px-4 py-3 md:py-3.5 bg-slate-50 border border-slate-100 rounded-xl outline-none appearance-none font-bold text-sm">
-                                        {tiposDocumento.map((doc) => <option key={doc.id} value={doc.id}>{doc.id}</option>)}
-                                    </select>
-                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                </div>
-                            </div>
                             <div className="space-y-1.5 md:space-y-2 text-left">
                                 <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Número Doc *</label>
                                 <input type="text" name="numero_documento" required value={formData.numero_documento} onChange={handleChange} placeholder="70001000"
@@ -228,29 +202,10 @@ function Register() {
                                 <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Nac. *</label>
                                 <input type="date" name="fecha_nacimiento" required value={formData.fecha_nacimiento} onChange={handleChange} className="w-full px-4 py-3 md:py-3.5 bg-slate-50 border border-slate-100 rounded-xl outline-none font-bold text-sm" />
                             </div>
-                        </div>
-
-                        {/* Grupo 4: Contacto */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
                             <div className="space-y-1.5 md:space-y-2 text-left">
                                 <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mi Celular *</label>
                                 <input type="tel" name="telefono_personal" required value={formData.telefono_personal} onChange={handleChange} placeholder="999888777"
                                     className="w-full px-4 py-3 md:py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-orange-500 outline-none text-sm font-semibold shadow-sm" />
-                            </div>
-                            <div className="space-y-1.5 md:space-y-2 text-left">
-                                <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Emergencia *</label>
-                                <input type="tel" name="contacto_emergencia" required value={formData.contacto_emergencia} onChange={handleChange} placeholder="944555666"
-                                    className="w-full px-4 py-3 md:py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:border-orange-500 outline-none text-sm font-semibold shadow-sm" />
-                            </div>
-                            <div className="space-y-1.5 md:space-y-2 text-left sm:col-span-2 md:col-span-1">
-                                <label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Parentesco *</label>
-                                <select name="parentesco" required value={formData.parentesco} onChange={handleChange} className="w-full px-4 py-3 md:py-3.5 bg-slate-50 border border-slate-100 rounded-xl outline-none font-bold text-sm">
-                                    <option value="">Elegir...</option>
-                                    <option value="familiar">Familiar</option>
-                                    <option value="pareja">Pareja</option>
-                                    <option value="amistad">Amistad</option>
-                                    <option value="otro">Otro</option>
-                                </select>
                             </div>
                         </div>
 

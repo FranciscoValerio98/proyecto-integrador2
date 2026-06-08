@@ -22,7 +22,6 @@ const TeacherSidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { icon: ClipboardList, label: 'Mis Clases', path: '/dashboard/teacher' },
     { icon: User, label: 'Mi Perfil', path: '/dashboard/teacher/profile' },
-    { icon: User, label: 'Dias de corte', path: '/dashboard/teacher/DiaCorte' },
   ];
 
   return (

@@ -28,33 +28,18 @@ import Dashboard from "./pages/Dashboard"; // Admin: Resumen General
 import DashboardEstudiante from "./pages/DashboardEstudiante"; // Estudiante: Inicio
 import DashboardTeacher from "./pages/DashboardTeacher"; // Coordinador: Asistencia
 import TeacherProfile from "./pages/teacher/Profile"; // Coordinador: Perfil
-import DiaCorte from "./pages/teacher/DiaCorte"
 
 // 4. Nuevas Páginas de Gestión (Admin)
 import AdminLocationsManager from "./pages/admin/AdminLocationsManager";
 import AdminLevelsManager from "./pages/admin/AdminLevelsManager";
 import AdminTeachersManager from "./pages/admin/AdminTeachersManager";
-import AdminCatalogManager from "./pages/admin/AdminCatalogManager";
 import AdminSchedulesManager from "./pages/admin/AdminScheduleManager";
 import AdminStudentsManager from "./pages/admin/AdminStudentManager";
 import AdminPaymentManager from "./pages/admin/AdminPaymentManager";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminInjuriesManager from "./pages/admin/AdminInjuriesManager";
-import AdminBenefits from "./pages/admin/AdminBenefits";
-import AdminCreateBenefits from "./pages/admin/AdminCreateBenefits";
-import AdminPublications from "./pages/admin/AdminPublications";
-import AdminGuestPasses from "./pages/admin/AdminGuestPasses";
-import AdminReprogramaciones from "./pages/admin/AdminReprogramaciones";
-import AdminDeleteMakeups from "./pages/admin/AdminDeleteMakeups";
-import AdminCreateBenefitsAnuncio from "./pages/admin/AdminCreateBenefitsAnuncio";
-// 5. Nuevas Páginas de Estudiante
 import Payments from "./pages/student/Payments";
 import Profile from "./pages/student/Profile";
 import Enrollment from "./pages/student/enrollment";
 import Blog from "./pages/Blog";
-import StudentInjuries from "./pages/student/StudentInjuries";
-import StudentRecoveries from "./pages/student/StudentRecoveries";
-import StudentNews from "./pages/student/StudentNews";
 import MyRegistrations from "./pages/student/MyRegistrations";
 
 
@@ -62,8 +47,8 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <Toaster 
-        position="top-right" 
+      <Toaster
+        position="top-right"
         reverseOrder={false}
         toastOptions={{
           className: '',
@@ -138,9 +123,6 @@ function App() {
               <Route path="student/payments" element={<Payments />} />
               <Route path="student/profile" element={<Profile />} />
               <Route path="student/enrollment" element={<Enrollment />} />
-              <Route path="student/injuries" element={<StudentInjuries />} />
-              <Route path="student/recoveries" element={<StudentRecoveries />} />
-              <Route path="student/news" element={<StudentNews />} />
               <Route index element={<Navigate to="/dashboard/student" replace />} />
             </Route>
           </Route>
@@ -150,7 +132,6 @@ function App() {
             <Route element={<TeacherLayout />}>
               <Route path="teacher" element={<DashboardTeacher />} />
               <Route path="teacher/profile" element={<TeacherProfile />} />
-              <Route path="teacher/DiaCorte" element={<DiaCorte />} />
             </Route>
           </Route>
 
@@ -162,22 +143,10 @@ function App() {
               {/* Gestión CRUD */}
               <Route path="admin/students" element={<AdminStudentsManager />} />
               <Route path="admin/teachers" element={<AdminTeachersManager />} />
-              <Route path="admin/delete-makeups" element={<AdminDeleteMakeups />} />
-              <Route path="admin/benefits" element={<AdminBenefits />} />
-              <Route path="admin/CreateBenefits" element={<AdminCreateBenefits />} />
               <Route path="admin/schedule" element={<AdminSchedulesManager />} />
-              <Route path="admin/reprogramaciones" element={<AdminReprogramaciones />} />
               <Route path="admin/levels" element={<AdminLevelsManager />} />
-              <Route path="admin/catalog" element={<AdminCatalogManager />} />
               <Route path="admin/locations" element={<AdminLocationsManager />} />
-              <Route path="admin/injuries" element={<AdminInjuriesManager />} />
-              <Route path="admin/publications" element={<AdminPublications />} />
-              <Route path="admin/anuncios-beneficios" element={<AdminCreateBenefitsAnuncio />} />
               <Route path="admin/payment-validation" element={<AdminPaymentManager />} />
-              <Route path="admin/guest-passes" element={<AdminGuestPasses />} />
-
-              {/* Configuración */}
-              <Route path="admin/settings" element={<AdminSettings />} />
             </Route>
           </Route>
         </Route>

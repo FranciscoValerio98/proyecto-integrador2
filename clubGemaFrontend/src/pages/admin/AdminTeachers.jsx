@@ -11,9 +11,7 @@ const AdminTeachers = ({ onBack }) => {
         apellidos: '',
         email: '',
         telefono_personal: '',
-        tipo_documento_id: 'DNI',
         numero_documento: '',
-        especializacion: '',
         genero: '',
         fecha_nacimiento: ''
     });
@@ -32,21 +30,16 @@ const AdminTeachers = ({ onBack }) => {
 
         setLoading(true);
 
-        // Construcción del objeto EXACTO que pediste
         const payload = {
             email: formData.email,
-            password: formData.numero_documento, // Password por defecto
+            password: formData.numero_documento,
             nombres: formData.nombres,
             apellidos: formData.apellidos,
             rol_id: "coordinador",
-            tipo_documento_id: formData.tipo_documento_id,
             numero_documento: formData.numero_documento,
             telefono_personal: formData.telefono_personal,
-            fecha_nacimiento: formData.fecha_nacimiento, // Formato YYYY-MM-DD
+            fecha_nacimiento: formData.fecha_nacimiento,
             genero: formData.genero === "Masculino" ? "M" : "F",
-            datosRolEspecifico: {
-                especializacion: formData.especializacion
-            }
         };
 
         try {
@@ -54,7 +47,7 @@ const AdminTeachers = ({ onBack }) => {
 
             if (response.ok) {
                 toast.success("¡Coordinador registrado exitosamente!");
-                onBack(); // Regresa al listado
+                onBack();
             } else {
                 const errorData = await response.json();
                 toast.error(errorData.message || "Error al registrar");
@@ -86,7 +79,7 @@ const AdminTeachers = ({ onBack }) => {
                                 Registro de <span className="text-[#1e3a8a]">Coordinador</span>
                             </h1>
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3">Creación de cuenta federada</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-3">Creación de cuenta</p>
                     </div>
                 </div>
 
@@ -118,15 +111,7 @@ const AdminTeachers = ({ onBack }) => {
                                 <input name="apellidos" placeholder="Ej: González" onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20" />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Tipo de Doc.</label>
-                                <select name="tipo_documento_id" onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none">
-                                    <option value="DNI">DNI</option>
-                                    <option value="CE">C.E.</option>
-                                    <option value="PAS">Pasaporte</option>
-                                </select>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Nro. Documento (Será la clave)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Nro. Documento</label>
                                 <input name="numero_documento" placeholder="45678901" onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 shadow-inner" />
                             </div>
                             <div className="space-y-1">
@@ -165,21 +150,6 @@ const AdminTeachers = ({ onBack }) => {
 
                 {/* Columna Lateral */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                            <GraduationCap size={18} className="text-orange-500" />
-                            <h3 className="font-black text-slate-800 uppercase text-[10px] tracking-widest">Especialidad</h3>
-                        </div>
-                        <div className="p-6">
-                            <textarea
-                                name="especializacion"
-                                onChange={handleChange}
-                                placeholder="Describa el área técnica (Ej: Nivel Básico)..."
-                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-4 text-sm font-bold outline-none h-40 resize-none focus:ring-2 focus:ring-orange-500/20"
-                            />
-                        </div>
-                    </div>
-
                     <div className="bg-[#0f172a] p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
                         <div className="relative z-10">
                             <Lock size={28} className="text-orange-500 mb-4" />

@@ -13,41 +13,15 @@ export const usuarioService = {
       email,
       password,
       username: providedUsername,
-      tipo_documento_id,
       numero_documento,
       rol_id,
       fecha_nacimiento,
-      especializacion,
-      sede_id,
-      cargo,
-      area,
-      direccion_id,
-      condiciones_medicas,
-      seguro_medico,
-      grupo_sanguineo,
       rolNombre: providedRolNombre,
-      contacto_emergencia,
-      parentesco,
-      datosRolEspecifico,
-      direccion,
       ...otrosdatos
     } = userData;
 
-    const datosRol = {
-      especializacion,
-      sede_id,
-      cargo,
-      area,
-      direccion_id,
-      condiciones_medicas,
-      seguro_medico,
-      grupo_sanguineo,
-      direccion,
-      ...datosRolEspecifico,
-    };
-
     const fechaConvertida = fecha_nacimiento ? new Date(fecha_nacimiento) : null;
-    const rolNombre = providedRolNombre || rol_id || VALID_ROLES.ALUMNO;
+    const rolNombre = providedRolNombre || rol_id;
 
     let rol;
     if (typeof rolNombre === 'string') {
@@ -66,9 +40,9 @@ export const usuarioService = {
 
     if (!rol) throw new ApiError(`El rol '${rolNombre}' no existe`, 400);
 
-    if (tipo_documento_id && numero_documento) {
+    if (numero_documento) {
       const existeDocumento = await prisma.usuarios.findFirst({
-        where: { tipo_documento_id, numero_documento },
+        where: { numero_documento },
         select: { id: true },
       });
       if (existeDocumento) {
@@ -92,7 +66,6 @@ export const usuarioService = {
           username: `temp_${Date.now()}`,
           email: email || null,
           rol_id: rol.id,
-          tipo_documento_id: tipo_documento_id || null,
           numero_documento: numero_documento || null,
           fecha_nacimiento: fechaConvertida,
           ...otrosdatos,
@@ -121,23 +94,6 @@ export const usuarioService = {
         finalUsername,
         password
       );
-
-      await registroLogic.createRoleSpecificData(
-        tx,
-        rol.nombre.toLowerCase(),
-        nuevoUsuario.id,
-        datosRol
-      );
-
-      if (rol.nombre.toLowerCase() === 'alumno') {
-        await registroLogic.crearContactoEmergencia(
-          tx,
-          nuevoUsuario.id,
-          otrosdatos.nombres,
-          datosRolEspecifico.contacto_emergencia,
-          datosRolEspecifico.parentesco
-        );
-      }
 
       // Hack para scope léxico: password autogenerado u originado
       nuevoUsuario.finalProvidedPassword = passwordToHash;
@@ -460,12 +416,10 @@ export const usuarioService = {
     };
 
     if (sedeId) {
-      whereClause.alumnos = {
-        inscripciones: {
-          some: {
-            horarios_clases: {
-              canchas: { sede_id: Number.parseInt(sedeId) },
-            },
+      whereClause.inscripciones = {
+        some: {
+          horarios_clases: {
+            canchas: { sede_id: Number.parseInt(sedeId) },
           },
         },
       };
@@ -482,51 +436,22 @@ export const usuarioService = {
         fecha_nacimiento: true,
         email: true,
         genero: true,
-        alumnos: {
+        inscripciones: {
+          // ❌ ELIMINA EL WHERE: where: { estado: 'ACTIVO' },
+          orderBy: { fecha_inscripcion: 'desc' }, // 🔥 La más reciente siempre será la [0]
           select: {
-            // 🔥 CAMPOS DE SALUD (Sacados de tu imagen b09aa9)
-            condiciones_medicas: true,
-            seguro_medico: true,
-            grupo_sanguineo: true,
-            historial: true,
-            direcciones: {
+            estado: true, // 🔥 VITAL: Ahora necesitas saber el estado en el frontend
+            fecha_inscripcion: true,
+            horarios_clases: {
               select: {
-                direccion_completa: true,
-                distrito: true,
-                ciudad: true,
-                referencia: true
-              }
-            },
-
-            // 📞 CONTACTOS DE EMERGENCIA (Sacados de tu imagen 504af4)
-            alumnos_contactos: {
-              where: { es_principal: true },
-              select: {
-                nombre_completo: true,
-                telefono: true,
-                relacion: true
-              }
-            },
-
-            // 🎾 INSCRIPCIONES PARA SEDE, NIVEL Y CORTE
-            inscripciones: {
-              // ❌ ELIMINA EL WHERE: where: { estado: 'ACTIVO' },
-              orderBy: { fecha_inscripcion: 'desc' }, // 🔥 La más reciente siempre será la [0]
-              select: {
-                estado: true, // 🔥 VITAL: Ahora necesitas saber el estado en el frontend
-                fecha_inscripcion: true,
-                horarios_clases: {
+                hora_inicio: true,
+                hora_fin: true,
+                dia_semana: true,
+                niveles_entrenamiento: { select: { nombre: true } },
+                canchas: {
                   select: {
-                    hora_inicio: true, 
-                    hora_fin: true,    
-                    dia_semana: true,
-                    niveles_entrenamiento: { select: { nombre: true } },
-                    canchas: {
-                      select: {
-                        nombre: true,
-                        sedes: { select: { nombre: true } }
-                      }
-                    }
+                    nombre: true,
+                    sedes: { select: { nombre: true } }
                   }
                 }
               }
@@ -537,6 +462,7 @@ export const usuarioService = {
       orderBy: { nombres: 'asc' },
     });
   },
+
   getUserByDni: async (dni) => {
     return await prisma.usuarios.findFirst({
       where: { numero_documento: dni },

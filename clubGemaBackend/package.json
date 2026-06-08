@@ -1,5 +1,5 @@
 {
-  "name": "academiaGemaBackend",
+  "name": "academia-gema-backend",
   "version": "1.0.0",
   "description": "API REST para GemaAcademy - Sistema de gestión de academia deportiva",
   "main": "src/index.js",

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Plus, Search, Phone, Loader2, UserCog, ArrowLeft, 
-    Mail, Award, Calendar, Fingerprint, User, 
-    ShieldCheck, Info, Save, Edit3 
+import {
+    Plus, Search, Phone, Loader2, UserCog, ArrowLeft,
+    Mail, Award, Calendar, Fingerprint, User,
+    ShieldCheck, Info, Save, Edit3
 } from 'lucide-react';
 import AdminTeachers from './AdminTeachers';
 import AdminTeacherEdit from './AdminTeacherEdit'; // 🔥 Importamos el nuevo componente
@@ -31,12 +31,11 @@ const AdminTeachersManager = () => {
                     email: user.email,
                     rol_id: "Coordinador",
                     telefono_personal: user.telefono_personal || 'No registrado',
-                    tipo_documento_id: user.tipo_documento_id,
                     numero_documento: user.numero_documento,
                     fecha_nacimiento: user.fecha_nacimiento ? new Date(user.fecha_nacimiento).toLocaleDateString('es-PE') : '---',
                     genero: user.genero,
                     datosRolEspecifico: {
-                        especializacion: user.coordinadores?.especializacion || 'Coordinador General'
+                        especializacion: 'Coordinador General'
                     }
                 }));
                 setCoordinadores(formattedData);
@@ -70,13 +69,13 @@ const AdminTeachersManager = () => {
 
     if (view === 'edit' && selectedTeacher) {
         return (
-            <AdminTeacherEdit 
-                teacherData={selectedTeacher} 
-                onBack={() => setView('details')} 
+            <AdminTeacherEdit
+                teacherData={selectedTeacher}
+                onBack={() => setView('details')}
                 onSuccess={() => {
                     setView('list');
                     fetchCoordinadores();
-                }} 
+                }}
             />
         );
     }
@@ -98,7 +97,7 @@ const AdminTeachersManager = () => {
                     </div>
 
                     {/* 🔥 BOTÓN PARA ACTIVAR EDICIÓN */}
-                    <button 
+                    <button
                         onClick={() => setView('edit')}
                         className="bg-orange-500 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-[#0f172a] transition-all shadow-lg"
                     >
@@ -141,7 +140,7 @@ const AdminTeachersManager = () => {
                                         <Fingerprint size={14} /><p className="text-[9px] font-black uppercase">Identificación</p>
                                     </div>
                                     <p className="text-sm font-bold text-slate-700">
-                                        <span className="text-blue-600 mr-2">{selectedTeacher.tipo_documento_id}</span>
+                                        <span className="text-blue-600 mr-2">DNI</span>
                                         {selectedTeacher.numero_documento}
                                     </p>
                                 </div>

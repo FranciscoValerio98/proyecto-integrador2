@@ -1,7 +1,6 @@
 import z from 'zod';
 import { userCommonValidation } from '../../shared/validation/common.validation.js';
 import { VALID_ROLES_ARRAY, ROLE_REQUIRED_FIELDS } from '../roles/roles.constants.js';
-import { rolesSpecificSchemas } from './schemas/roles.schema.js';
 import { commonUsuarioSchemas } from './schemas/common.schema.js';
 
 const emptyToUndefined = (schema) => z.preprocess((val) => (val === '' ? undefined : val), schema);
@@ -78,37 +77,6 @@ export const usuarioSchema = {
           received: rol,
         });
       }
-
-      const schemasMap = {
-        alumno: rolesSpecificSchemas.alumnoSpecificSchema,
-        coordinador: rolesSpecificSchemas.coordinadorSpecificSchema,
-        administrador: rolesSpecificSchemas.administradorSpecificSchema,
-      };
-
-      if (schemasMap[rol]) {
-        const result = schemasMap[rol].safeParse(datos);
-        if (!result.success) {
-          result.error.issues.forEach((issue) => {
-            ctx.addIssue({
-              ...issue,
-              path: ['datosRolEspecifico', ...issue.path],
-            });
-          });
-        }
-      }
-
-      const requiredFields = ROLE_REQUIRED_FIELDS[rol] || [];
-      requiredFields.forEach((field) => {
-        if (!datos[field]) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.invalid_type,
-            path: ['datosRolEspecifico', field],
-            expected: 'string',
-            received: typeof datos[field],
-            message: `Campo "${field}" es obligatorio para el rol ${rol}`,
-          });
-        }
-      });
     }),
 
   updateUserSchema: z
