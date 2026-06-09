@@ -677,15 +677,12 @@ export const asistenciaService = {
     };
   },
 
-  eliminarClases: async (tx, inscripcionId, fecha_inscripcion_original) => {
-    // const hoy = new Date()
-    // hoy.setHours(0, 0, 0, 0)
-
+  eliminarClases: async (tx, inscripcionId, fecha_inscripcion) => {
     const registros = await tx.registros_asistencia.deleteMany({
       where: {
         inscripcion_id: inscripcionId,
         fecha: {
-          gte: fecha_inscripcion_original,
+          gte: fecha_inscripcion,
         }
       }
     })

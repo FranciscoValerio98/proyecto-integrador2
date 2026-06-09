@@ -302,7 +302,7 @@ export const inscripcionService = {
     return await prisma.inscripciones.findMany({
       where: {
         alumno_id: Number.parseInt(alumnoId),
-        estado: { notIn: ['FINALIZADO', 'PEN-RECU'] }
+        estado: { notIn: ['FINALIZADO'] }
       },
       include: {
         horarios_clases: {
@@ -317,7 +317,7 @@ export const inscripcionService = {
               }
             },
             niveles_entrenamiento: true,
-            coordinadores: { include: { usuarios: true } }
+            usuarios: true,
           }
         }
       }
@@ -589,8 +589,15 @@ export const inscripcionService = {
     // if (!adminId) throw new ApiError('El campo adminId es requerido', 400); //No es necesario
 
     return await prisma.$transaction(async (tx) => {
-      const insc = await tx.inscripciones.findUnique({
+      const insc = await tx.inscripciones.findFirst({
         where: { alumno_id: alumnoId, id: inscripcionId },
+        include: {
+          inscripciones_deudas_link: {
+            orderBy: {
+              creado_en: 'desc',
+            }
+          },
+        }
       })
       if (!insc) throw new ApiError('No existe inscripción con esa ID', 404);
 
@@ -598,7 +605,7 @@ export const inscripcionService = {
       const yaExiste = inscTotales.some(i => i.horario_id === horarioId)
       if (yaExiste) throw new ApiError('El horario destino ya pertenece a una inscripción del alumno.', 400);
 
-      const count = await asistenciaService.eliminarClases(tx, insc.id, insc.fecha_inscripcion_original);
+      const count = await asistenciaService.eliminarClases(tx, insc.id, insc.fecha_inscripcion);
       console.log(`Se eliminaron ${count} registros de asistencia.`)
 
       await tx.inscripciones.update({
@@ -613,15 +620,22 @@ export const inscripcionService = {
         data: {
           alumno_id: insc.alumno_id,
           horario_id: horarioId,
-          fecha_inscripcion: insc.fecha_inscripcion_original, //Para asegurar que se reinicie la fecha de inscripción con la original (PARA CASOS AISLADOS DE REPROGRAMACIÓN MASIVA)
-          fecha_inscripcion_original: insc.fecha_inscripcion_original,
+          fecha_inscripcion: insc.fecha_inscripcion,
           estado: 'ACTIVO',
           actualizado_en: new Date(),
           creado_en: insc.creado_en,
-          id_grupo_transaccion: insc.id_grupo_transaccion,
         },
         include: {
           horarios_clases: true
+        }
+      })
+      console.log(insc)
+
+      await tx.inscripciones_deudas_link.create({
+        data: {
+          inscripcion_id: createdInsc.id,
+          cuenta_id: insc.inscripciones_deudas_link[0].cuenta_id,
+          monto_asignado: Number(insc.inscripciones_deudas_link[0].monto_asignado),
         }
       })
 
@@ -650,7 +664,7 @@ export const inscripcionService = {
 
       await tx.notificaciones.create({
         data: {
-          alumno_id: createdInsc.alumno_id,
+          usuario_id: createdInsc.alumno_id,
           titulo: `Cambio de Horario por el Administrador`,
           mensaje: `Tu horario ha sido modificado, verifica tu plan de entrenamiento.`,
           tipo: 'WARNING',
