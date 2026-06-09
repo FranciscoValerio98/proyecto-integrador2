@@ -204,20 +204,21 @@ export const CuentasPorCobrarService = {
     try {
       return await prisma.cuentas_por_cobrar.findMany({
         where: {
-          alumno_id: Number.parseInt(alumnoId),
+          inscripciones_deudas_link: {
+            some: {
+              inscripciones: {
+                alumno_id: Number.parseInt(alumnoId),
+              }
+            }
+          }
         },
         include: {
-          // Traemos el concepto (Plan 2 clases, etc.)
           catalogo_conceptos: true,
-
-          // Traemos los pagos reportados para calcular saldos en el Front
           pagos: {
             where: {
               estado_validacion: { not: 'RECHAZADO' }
             }
           },
-
-          // 🚩 IMPORTANTE: Navegamos por el link para saber qué clases están amarradas a esta deuda
           inscripciones_deudas_link: {
             include: {
               inscripciones: {

@@ -62,8 +62,8 @@ const AdminPaymentManager = () => {
             const monthMatch = selectedMonth === 'ALL' || date.getMonth().toString() === selectedMonth;
             const statusMatch = statusFilter === '' || p.estado_validacion === statusFilter;
 
-            const nombres = p.cuentas_por_cobrar?.alumnos?.usuarios?.nombres || '';
-            const apellidos = p.cuentas_por_cobrar?.alumnos?.usuarios?.apellidos || '';
+            const nombres = p.cuentas_por_cobrar?.inscripciones_deudas_link?.[0]?.inscripciones?.usuarios?.nombres || '';
+            const apellidos = p.cuentas_por_cobrar?.inscripciones_deudas_link?.[0]?.inscripciones?.usuarios?.apellidos || '';
             const alumnoNombre = `${nombres} ${apellidos}`.toLowerCase();
             const searchMatch = searchTerm === '' ||
                 alumnoNombre.includes(searchTerm.toLowerCase()) ||
@@ -191,8 +191,7 @@ const AdminPaymentManager = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <AnimatePresence>
                         {filteredPayments.map((p) => {
-                            const usuario = p.cuentas_por_cobrar?.alumnos?.usuarios;
-                            const estaBloqueado = p.bloqueado_por_asistencia;
+                            const usuario = p.cuentas_por_cobrar?.inscripciones_deudas_link?.[0]?.inscripciones?.usuarios;
 
                             return (
                                 <motion.div
@@ -203,29 +202,21 @@ const AdminPaymentManager = () => {
                                     key={p.id}
                                     // 🔥 CAMBIO: Ahora llama a la función de carga profunda
                                     onClick={() => handleSelectPayment(p)}
-                                    className={`bg-white rounded-[2.5rem] border-2 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden ${estaBloqueado
-                                        ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.15)] bg-orange-50/30'
-                                        : 'border-slate-200 hover:border-blue-300'
-                                        }`}
+                                    className={`bg-white rounded-[2.5rem] border-2 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer group relative overflow-hidden border-slate-200 hover:border-blue-300`}
                                 >
-                                    {estaBloqueado && (
-                                        <div className="absolute top-0 left-0 w-full bg-orange-500 text-white text-[8px] font-black uppercase py-1 text-center flex items-center justify-center gap-1 italic tracking-widest">
-                                            <ShieldAlert size={10} /> BLOQUEADO POR ASISTENCIA (RECUPERACIONES)
-                                        </div>
-                                    )}
 
-                                    <div className={`flex justify-between items-start mb-6 ${estaBloqueado ? 'mt-4' : ''}`}>
+                                    <div className={`flex justify-between items-start mb-6`}>
                                         <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border shadow-sm ${getStatusStyle(p.estado_validacion)}`}>
                                             {p.estado_validacion}
                                         </div>
-                                        <div className={`p-2.5 rounded-2xl transition-all duration-300 ${estaBloqueado ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 group-hover:bg-[#1e3a8a] group-hover:text-white'}`}>
+                                        <div className={`p-2.5 rounded-2xl transition-all duration-300 bg-slate-50 group-hover:bg-[#1e3a8a] group-hover:text-white`}>
                                             <ChevronRight size={18} />
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-4">
-                                            <div className={`p-3 rounded-2xl transition-colors duration-300 shrink-0 ${estaBloqueado ? 'bg-orange-200 text-orange-700' : 'bg-blue-50 text-[#1e3a8a] group-hover:bg-[#1e3a8a] group-hover:text-white'}`}>
+                                            <div className={`p-3 rounded-2xl transition-colors duration-300 shrink-0 bg-blue-50 text-[#1e3a8a] group-hover:bg-[#1e3a8a] group-hover:text-white`}>
                                                 <User size={22} />
                                             </div>
                                             <div className="min-w-0 flex-1">
@@ -258,7 +249,7 @@ const AdminPaymentManager = () => {
                                         </div>
 
                                         <div className="flex items-center gap-4 pt-2">
-                                            <div className={`p-3 rounded-2xl shrink-0 ${estaBloqueado ? 'bg-orange-100 text-orange-600' : 'bg-orange-50 text-orange-600'}`}>
+                                            <div className={`p-3 rounded-2xl shrink-0 bg-orange-50 text-orange-600`}>
                                                 <DollarSign size={22} />
                                             </div>
                                             <div>
@@ -269,11 +260,7 @@ const AdminPaymentManager = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    {estaBloqueado ? (
-                                        <ShieldAlert className="absolute -right-8 -bottom-8 text-orange-500/10" size={140} />
-                                    ) : (
-                                        <AlertCircle className="absolute -right-8 -bottom-8 text-slate-50 group-hover:text-blue-50/30 transition-colors duration-500" size={140} />
-                                    )}
+                                    <AlertCircle className="absolute -right-8 -bottom-8 text-slate-50 group-hover:text-blue-50/30 transition-colors duration-500" size={140} />
                                 </motion.div>
                             );
                         })}

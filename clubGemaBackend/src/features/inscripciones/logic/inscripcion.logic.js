@@ -1,35 +1,4 @@
 /**
- * Determina si el alumno es Legacy (antiguo) basándose en su último pago aprobado.
- */
-export const detectarRegimenAlumno = async (tx, alumnoId) => {
-  // 1. Buscamos al alumno directamente por su ID y sacamos solo su historial
-  const alumno = await tx.alumnos.findUnique({
-    where: { usuario_id: parseInt(alumnoId) },
-    select: { historial: true },
-  });
-
-  // 2. Si no existe o su historial está vacío (null), por defecto es alumno NUEVO (false)
-  if (!alumno || !alumno.historial) {
-    return false;
-  }
-
-  // 3. Verificamos si en su historial dice "Antiguo".
-  // Lo pasamos a mayúsculas para que no falle si el admin escribe "antiguo", "Antiguo" o "ANTIGUO".
-  const esLegacy = alumno.historial.toUpperCase().includes('ANTIGUO');
-
-  return esLegacy;
-};
-
-/**
- * Determina si es un Upgrade y calcula la fecha de corte del ciclo actual.
- */
-/**
- * Determina si es un Upgrade y calcula la fecha de corte del ciclo actual.
- */
-/**
- * Determina si es un Upgrade y calcula la fecha de corte del ciclo actual.
- */
-/**
  * Determina si es un Upgrade y calcula la fecha de corte del ciclo actual.
  * 🛡️ BLINDAJE: Caso 9 (Pagador Adelantado) y Caso 5 (Anti-Limbo).
  */

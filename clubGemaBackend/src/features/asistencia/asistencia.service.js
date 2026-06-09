@@ -93,7 +93,6 @@ export const asistenciaService = {
       fecha: fecha,
       estado: 'PROGRAMADA',
       registrado_por: coordinador_id,
-      comentario: `Generado auto (Ciclo 30 días) - Admin ID: ${usuario_admin_id}`,
     }));
 
     // 4. Insertamos usando skipDuplicates para blindar la base de datos
@@ -110,30 +109,6 @@ export const asistenciaService = {
 
     return datosAsistencia.length;
   },
-
-
-  // NO SE USA
-  // marcarAsistencia: async (asistenciaId, estado, comentario) => {
-  //   const asistenciaRegistrada = await prisma.registros_asistencia.update({
-  //     where: { id: asistenciaId },
-  //     data: {
-  //       estado,
-  //       comentario,
-  //       actualizado_en: new Date()
-  //     },
-  //     include: {
-  //       inscripciones: true
-  //     }
-  //   });
-
-  //   // Crea un registro en la tabla recuperaciones con estado PENDIENTE en caso la asistencia sea registrada como FALTA.
-  //   if (asistenciaRegistrada.estado === "FALTA") {
-  //     const idAlumnoInscripcion = asistenciaRegistrada.inscripciones.alumno_id;
-  //     await recuperacionService.registrarFaltaPendiente(idAlumnoInscripcion, asistenciaRegistrada.fecha)
-  //   }
-
-  //   return asistenciaRegistrada
-  // },
 
   obtenerHistorial: async (inscripcionId) => {
     return await prisma.registros_asistencia.findMany({

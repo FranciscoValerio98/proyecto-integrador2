@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, MapPin, Building2, ChevronRight, Search, Edit3, Trash2, ArrowLeft } from 'lucide-react';
 import AdminLocations from './AdminLocations';
 import { sedeService } from '../../services/sede.service';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 
 const AdminLocationsManager = () => {
     const [view, setView] = useState('list');
@@ -154,7 +154,7 @@ const AdminLocationsManager = () => {
                             </h3>
                             <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
                                 <MapPin size={12} className="text-orange-500" />
-                                {sede.direcciones?.distrito || 'Sin distrito'}
+                                {sede.distrito || 'Sin distrito'}
                             </p>
                         </div>
 

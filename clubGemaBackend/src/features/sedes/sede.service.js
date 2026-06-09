@@ -9,9 +9,8 @@ const SEDE_SELECT_FIELDS = {
   id: true,
   nombre: true,
   telefono_contacto: true,
-  tipo_instalacion: true,
+  distrito: true,
   activo: true,
-  direcciones: DIRECCION_SELECT,
   canchas: {
     select: {
       id: true,
@@ -25,29 +24,15 @@ const SEDE_SELECT_FIELDS = {
           hora_inicio: true,
           hora_fin: true,
           niveles_entrenamiento: true,
-          coordinadores: {
+          usuarios: {
             select: {
-              usuarios: {
-                select: {
-                  nombres: true,
-                  apellidos: true,
-                  email: true,
-                },
-              },
-            },
+              rol_id: true,
+              nombres: true,
+              apellidos: true,
+              email: true,
+              telefono_personal: true,
+            }
           },
-        },
-      },
-    },
-  },
-  administrador: {
-    select: {
-      usuarios: {
-        select: {
-          nombres: true,
-          apellidos: true,
-          email: true,
-          telefono_personal: true,
         },
       },
     },
@@ -57,52 +42,29 @@ const SEDE_SELECT_FIELDS = {
 /**
  * Construye el objeto `where` para filtrar sedes.
  */
-const buildWhereFilters = ({ activo, distrito, tipo_instalacion }) => {
+const buildWhereFilters = ({ activo, distrito }) => {
   const where = {};
   if (activo !== undefined) {
     where.activo = activo === true || activo === 'true';
   }
   if (distrito) {
-    where.direcciones = { distrito: { contains: distrito, mode: 'insensitive' } };
-  }
-  if (tipo_instalacion) {
-    where.tipo_instalacion = { contains: tipo_instalacion, mode: 'insensitive' };
+    where.distrito = { contains: distrito, mode: 'insensitive' };
   }
   return where;
 };
 
 export const sedeService = {
   createSede: async (sedeData) => {
-    const { direccion, administrador_id, canchas } = sedeData;
-
-    const adminRelacion = await prisma.administrador.findUnique({
-      where: { usuario_id: administrador_id },
-      select: { usuario_id: true },
-    });
-
-    if (!adminRelacion) throw new ApiError('Administrador no válido', 404);
+    const { canchas } = sedeData;
 
     return await prisma.$transaction(
       async (tx) => {
-        const nuevaDireccion = await tx.direcciones.create({
-          data: {
-            direccion_completa: direccion.direccion_completa,
-            distrito: direccion.distrito,
-            ciudad: direccion.ciudad || 'Lima',
-            referencia: direccion.referencia || null,
-          },
-        });
-
         const sedeCreada = await tx.sedes.create({
           data: {
             nombre: sedeData.nombre,
             telefono_contacto: sedeData.telefono_contacto || null,
-            tipo_instalacion: sedeData.tipo_instalacion || null,
+            distrito: sedeData.distrito || null,
             activo: true,
-            direccion_id: nuevaDireccion.id,
-            administrador: {
-              connect: { usuario_id: adminRelacion.usuario_id },
-            },
           },
         });
 
@@ -194,7 +156,6 @@ export const sedeService = {
 
   updateSede: async (id, sedeData) => {
     return await prisma.$transaction(async (tx) => {
-      // 1. Actualizar datos de Sede y Dirección
       await tx.sedes.update({
         where: { id },
         data: {
@@ -202,37 +163,15 @@ export const sedeService = {
           ...(sedeData.telefono_contacto !== undefined && {
             telefono_contacto: sedeData.telefono_contacto,
           }),
-          ...(sedeData.tipo_instalacion !== undefined && {
-            tipo_instalacion: sedeData.tipo_instalacion,
-          }),
           ...(sedeData.activo !== undefined && { activo: sedeData.activo }),
-          ...(sedeData.direccion && {
-            direcciones: {
-              update: {
-                ...(sedeData.direccion.direccion_completa && {
-                  direccion_completa: sedeData.direccion.direccion_completa,
-                }),
-                ...(sedeData.direccion.distrito && {
-                  distrito: sedeData.direccion.distrito,
-                }),
-                ...(sedeData.direccion.ciudad && {
-                  ciudad: sedeData.direccion.ciudad,
-                }),
-                ...(sedeData.direccion.referencia !== undefined && {
-                  referencia: sedeData.direccion.referencia,
-                }),
-              },
-            },
-          }),
+          ...(sedeData.distrito && { distrito: sedeData.distrito })
         },
       });
 
-      // 2. Procesar Canchas en paralelo (Antigravity §3.1)
       if (sedeData.canchas && Array.isArray(sedeData.canchas)) {
         const canchasExistentes = sedeData.canchas.filter((c) => Number.isInteger(c.id));
         const canchasNuevas = sedeData.canchas.filter((c) => !Number.isInteger(c.id));
 
-        // Validamos que los IDs enviados pertenezcan a la sede actual
         if (canchasExistentes.length > 0) {
           const idsEnPayload = canchasExistentes.map((c) => c.id);
           const canchasEncontradas = await tx.canchas.findMany({
@@ -245,7 +184,6 @@ export const sedeService = {
           }
         }
 
-        // Borramos solo canchas omitidas del payload si no tienen historial de horarios
         const idsAMantener = canchasExistentes.map((c) => c.id);
         const whereEliminar = {
           sede_id: id,
@@ -277,7 +215,6 @@ export const sedeService = {
           });
         }
 
-        // Updates en paralelo
         if (canchasExistentes.length > 0) {
           await Promise.all(
             canchasExistentes.map((c) =>
@@ -289,7 +226,6 @@ export const sedeService = {
           );
         }
 
-        // Nuevas: un solo query para verificar duplicados + createMany
         if (canchasNuevas.length > 0) {
           const canchasNuevasUnicas = [];
           const nombresVistos = new Set();
@@ -308,14 +244,14 @@ export const sedeService = {
           const yaExisten =
             nombresNuevos.length > 0
               ? await tx.canchas.findMany({
-                  where: {
-                    sede_id: id,
-                    OR: nombresNuevos.map((nombre) => ({
-                      nombre: { equals: nombre, mode: 'insensitive' },
-                    })),
-                  },
-                  select: { nombre: true },
-                })
+                where: {
+                  sede_id: id,
+                  OR: nombresNuevos.map((nombre) => ({
+                    nombre: { equals: nombre, mode: 'insensitive' },
+                  })),
+                },
+                select: { nombre: true },
+              })
               : [];
           const nombresExistentes = new Set(yaExisten.map((c) => c.nombre.toLowerCase()));
           const canchasParaCrear = canchasNuevasUnicas.filter(
@@ -334,7 +270,6 @@ export const sedeService = {
         }
       }
 
-      // 3. Retornar la sede actualizada
       return await tx.sedes.findUnique({
         where: { id },
         select: SEDE_SELECT_FIELDS,
@@ -362,18 +297,13 @@ export const sedeService = {
     return await prisma.$transaction(async (tx) => {
       const sede = await tx.sedes.findUnique({
         where: { id },
-        select: { direccion_id: true },
       });
 
       if (!sede) throw new ApiError('Sede no encontrada', 404);
 
       await tx.sedes.delete({ where: { id } });
 
-      if (sede.direccion_id) {
-        await tx.direcciones.delete({ where: { id: sede.direccion_id } });
-      }
-
-      return { success: true, message: 'Sede, canchas y dirección eliminadas correctamente' };
+      return { success: true, message: 'Sede y canchas eliminadas correctamente' };
     });
   },
   obtenerOcupacionDashboard: async () => {

@@ -436,11 +436,11 @@ export const usuarioService = {
         fecha_nacimiento: true,
         email: true,
         genero: true,
+        username: true,
         inscripciones: {
-          // ❌ ELIMINA EL WHERE: where: { estado: 'ACTIVO' },
-          orderBy: { fecha_inscripcion: 'desc' }, // 🔥 La más reciente siempre será la [0]
+          orderBy: { fecha_inscripcion: 'desc' },
           select: {
-            estado: true, // 🔥 VITAL: Ahora necesitas saber el estado en el frontend
+            estado: true,
             fecha_inscripcion: true,
             horarios_clases: {
               select: {

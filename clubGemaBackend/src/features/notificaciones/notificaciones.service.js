@@ -5,8 +5,7 @@ export const notificacionesService = {
   crear: async (data) => {
     return await prisma.notificaciones.create({
       data: {
-        usuario_id: data.usuarioId || null,
-        alumno_id: data.alumnoId || null,
+        usuario_id: data.alumnoId || null,
         titulo: data.titulo,
         mensaje: data.mensaje,
         tipo: data.tipo || 'INFO',
@@ -38,7 +37,7 @@ export const notificacionesService = {
   // 🔥 SOLUCIÓN: Busca tanto en usuario_id como en alumno_id
   obtenerPorUsuario: async (usuarioId) => {
     return await prisma.notificaciones.findMany({
-      where: { 
+      where: {
         OR: [
           { usuario_id: usuarioId },
           { alumno_id: usuarioId }

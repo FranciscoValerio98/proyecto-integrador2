@@ -1,5 +1,4 @@
 import { prisma } from '../../config/database.config.js';
-import crypto from 'crypto';
 import * as Utils from './utils/inscripcion.util.js';
 import * as Validators from './validators/inscripcion.validator.js';
 import * as Logic from './logic/inscripcion.logic.js';
@@ -19,7 +18,7 @@ export const inscripcionService = {
   // 🚀 MOTOR MAESTRO DE INSCRIPCIÓN: GEMA ACADEMY (VERSIÓN FINAL)
   // =================================================================
   inscribirPaquete: async (data) => {
-    const { alumno_id, horario_ids, fecha_inicio_electiva, incluye_camiseta } = data;
+    const { alumno_id, horario_ids, fecha_inicio_electiva } = data;
 
     try {
       // 1. Validación de estructura de entrada (Utils sigue sirviendo)
@@ -28,11 +27,6 @@ export const inscripcionService = {
       return await prisma.$transaction(async (tx) => {
         // 🛡️ PASO 0: MUROS DE SEGURIDAD (Regla de Oro: Muro de Deuda)
         await Validators.validarMuroDeDeuda(tx, alumno_id);
-        await Validators.validarSinRecuperacionesPendientes(tx, alumno_id);
-
-        // 🕵️‍♂️ PASO 1: DETECTIVE DE RÉGIMEN (Solo para saber si es Legacy o 2026)
-        // Borramos Logic.calcularCicloUpgrade porque ya no hay sincronización.
-        const esAlumnoLegacy = await Logic.detectarRegimenAlumno(tx, alumno_id);
 
         // 👮‍♂️ PASO 2: VALIDACIÓN DE CAPACIDAD Y BUSQUEDA DE PLAN
         // Buscamos el plan según la cantidad de horarios que el alumno está comprando HOY.
@@ -40,7 +34,6 @@ export const inscripcionService = {
           where: {
             cantidad_clases_semanal: horario_ids.length,
             activo: true,
-            es_vigente: !esAlumnoLegacy
           }
         });
 
@@ -48,30 +41,23 @@ export const inscripcionService = {
           throw new Error(`⛔ No existe un plan para ${horario_ids.length} clases en el catálogo.`);
         }
 
-        // 🧟 PASO 3: ANTI-ZOMBIE (Aforo)
-        const paramZ = await tx.parametros_sistema.findUnique({ where: { clave: 'TIEMPO_LIMITE_RESERVA_MIN' } });
-        const fechaLimiteZombie = new Date(Date.now() - (paramZ ? parseInt(paramZ.valor) : 20) * 60 * 1000);
-
         // 🔄 PASO 4: PROCESAR HORARIOS (Independencia Radical)
         const inscripcionesCreadas = [];
-        const grupoUuid = crypto.randomUUID(); // ID único para este paquete de compra
 
         // La fecha de inicio es la electiva o hoy. Cada slot tendrá esta misma fecha de inicio.
         const inicioReal = fecha_inicio_electiva ? dayjs(fecha_inicio_electiva).tz(TZ_LIMA).hour(12).toDate() : dayjs().tz(TZ_LIMA).hour(12).toDate();
 
         for (const idHorario of horario_ids) {
           // Validar aforo por cada clase
-          await Validators.validarAforoHorario(tx, idHorario, fechaLimiteZombie);
+          await Validators.validarAforoHorario(tx, idHorario);
 
           // Crear la inscripción con sus propios 30 días limpios
           const nuevaInscripcion = await tx.inscripciones.create({
             data: {
               alumno_id: parseInt(alumno_id),
               horario_id: idHorario,
-              id_grupo_transaccion: grupoUuid,
               estado: 'PENDIENTE_PAGO',
               fecha_inscripcion: inicioReal,
-              fecha_inscripcion_original: inicioReal,
             },
             include: { horarios_clases: true }
           });
@@ -82,15 +68,9 @@ export const inscripcionService = {
         let totalCobrar = Number(conceptoAplicar.precio_base);
         let detalleCobro = [`Plan ${horario_ids.length} clases/semana`];
 
-        if (incluye_camiseta) {
-          totalCobrar += 50;
-          detalleCobro.push("Camiseta Oficial Gema");
-        }
-
         // Generar la Cuenta por Cobrar única para esta transacción
         const nuevaCuenta = await tx.cuentas_por_cobrar.create({
           data: {
-            alumno_id: parseInt(alumno_id),
             concepto_id: conceptoAplicar.id,
             monto_final: totalCobrar,
             detalle_adicional: detalleCobro.join(' | '),
@@ -111,50 +91,12 @@ export const inscripcionService = {
           }))
         });
 
-        // 💸 PASO 7: APLICACIÓN DE BENEFICIOS (Automáticos)
-        const beneficiosEnCola = await tx.beneficios_pendientes.findMany({
-          where: { alumno_id: parseInt(alumno_id), usado: false },
-          include: { tipos_beneficio: true }
-        });
-
-        let montoActualizado = totalCobrar;
-        for (const pendiente of beneficiosEnCola) {
-          const valorNominal = parseFloat(pendiente.tipos_beneficio.valor_por_defecto);
-          let descuentoReal = pendiente.tipos_beneficio.es_porcentaje
-            ? montoActualizado * (valorNominal / 100)
-            : valorNominal;
-
-          const descuentoFinal = descuentoReal > montoActualizado ? montoActualizado : descuentoReal;
-          montoActualizado -= descuentoFinal;
-
-          await tx.descuentos_aplicados.create({
-            data: {
-              cuenta_id: nuevaCuenta.id,
-              tipo_beneficio_id: pendiente.tipo_beneficio_id,
-              monto_nominal_aplicado: valorNominal,
-              monto_dinero_descontado: descuentoFinal,
-              motivo_detalle: pendiente.motivo || "Beneficio automático",
-              aplicado_por: pendiente.asignado_por
-            }
-          });
-          await tx.beneficios_pendientes.update({ where: { id: pendiente.id }, data: { usado: true } });
-        }
-
-        // Actualizamos el monto final de la cuenta tras los beneficios
-        await tx.cuentas_por_cobrar.update({
-          where: { id: nuevaCuenta.id },
-          data: {
-            monto_final: montoActualizado,
-            estado: montoActualizado <= 0.01 ? 'PAGADA' : 'PENDIENTE'
-          }
-        });
-
         // 🔔 PASO 8: NOTIFICACIÓN
         await tx.notificaciones.create({
           data: {
-            alumno_id: parseInt(alumno_id),
+            usuario_id: parseInt(alumno_id),
             titulo: '✅ Inscripción Generada',
-            mensaje: `Se ha reservado tu cupo. Total: S/ ${montoActualizado.toFixed(2)}.`,
+            mensaje: `Se ha reservado tu cupo. Total: S/ ${totalCobrar.toFixed(2)}.`,
             tipo: 'SUCCESS',
             categoria: 'SISTEMA'
           }
@@ -162,7 +104,7 @@ export const inscripcionService = {
 
         return {
           mensaje: 'Inscripción procesada exitosamente.',
-          total_a_pagar: montoActualizado,
+          total_a_pagar: totalCobrar,
           inscripciones: inscripcionesCreadas
         };
       });
@@ -610,7 +552,6 @@ export const inscripcionService = {
 
       // 3. LIMPIEZA TOTAL
       await tx.inscripciones_deudas_link.deleteMany({ where: { cuenta_id: parseInt(cuentaId) } });
-      await tx.descuentos_aplicados.deleteMany({ where: { cuenta_id: parseInt(cuentaId) } });
       await tx.pagos.deleteMany({ where: { cuenta_id: parseInt(cuentaId) } });
       await tx.cuentas_por_cobrar.delete({ where: { id: parseInt(cuentaId) } });
 
@@ -746,7 +687,6 @@ export const inscripcionService = {
         where: { id: { in: idsInscripciones } },
         data: {
           fecha_inscripcion: fechaFormateada,
-          fecha_inscripcion_original: fechaFormateada,
           actualizado_en: new Date()
         }
       });

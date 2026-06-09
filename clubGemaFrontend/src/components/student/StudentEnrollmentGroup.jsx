@@ -3,7 +3,7 @@ import { MapPin, CheckCircle2, Zap, AlertTriangle } from 'lucide-react';
 
 const StudentEnrollmentGroup = ({ group, selectedIds, onToggle }) => {
   const daysShort = ["", "LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"];
-  
+
   const idsDelGrupo = group.opciones.map(o => o.id);
   const seleccionadosDelGrupo = idsDelGrupo.filter(id => selectedIds.includes(id));
   const todoSeleccionado = seleccionadosDelGrupo.length === idsDelGrupo.length;
@@ -20,10 +20,9 @@ const StudentEnrollmentGroup = ({ group, selectedIds, onToggle }) => {
   };
 
   return (
-    <div className={`bg-white rounded-[2.5rem] p-5 md:p-6 shadow-sm border-2 transition-all duration-500 flex flex-col md:flex-row items-center gap-4 md:gap-6 group relative ${
-      todoSeleccionado ? 'border-green-500 bg-green-50/10' : algunoSeleccionado ? 'border-orange-500 bg-orange-50/5' : 'border-slate-100'
-    }`}>
-      
+    <div className={`bg-white rounded-[2.5rem] p-5 md:p-6 shadow-sm border-2 transition-all duration-500 flex flex-col md:flex-row items-center gap-4 md:gap-6 group relative ${todoSeleccionado ? 'border-green-500 bg-green-50/10' : algunoSeleccionado ? 'border-orange-500 bg-orange-50/5' : 'border-slate-100'
+      }`}>
+
       {/* Nivel Badge */}
       <div className="flex flex-col items-center justify-center md:border-r md:border-slate-100 md:pr-8 min-w-[120px]">
         <span className="text-[7px] font-black text-slate-300 uppercase tracking-[0.3em] mb-1 italic">Nivel Gema</span>
@@ -46,26 +45,25 @@ const StudentEnrollmentGroup = ({ group, selectedIds, onToggle }) => {
         <p className="text-[9px] font-bold text-slate-400 uppercase italic mt-1 mb-3">
           Cancha: <span className="text-orange-500">{group.cancha}</span>
         </p>
-        
+
         {/* BOTÓN MASTER RECONTRA EXPLICITO */}
         {idsDelGrupo.length > 1 && (
-          <button 
+          <button
             onClick={toggleTodoElBloque}
-            className={`w-full md:w-auto flex items-center justify-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase italic transition-all shadow-lg ${
-              todoSeleccionado 
-              ? 'bg-green-500 text-white' 
-              : faltaSeleccionar 
-              ? 'bg-orange-500 text-white animate-pulse'
-              : 'bg-slate-100 text-slate-400 hover:bg-blue-100 hover:text-[#1e3a8a]'
-            }`}
+            className={`w-full md:w-auto flex items-center justify-center gap-3 px-6 py-3 rounded-2xl text-[9px] font-black uppercase italic transition-all shadow-lg ${todoSeleccionado
+              ? 'bg-green-500 text-white'
+              : faltaSeleccionar
+                ? 'bg-orange-500 text-white animate-pulse'
+                : 'bg-slate-100 text-slate-400 hover:bg-blue-100 hover:text-[#1e3a8a]'
+              }`}
           >
             {todoSeleccionado ? <CheckCircle2 size={14} /> : faltaSeleccionar ? <AlertTriangle size={14} /> : <Zap size={14} fill="currentColor" />}
             <span>
-              {todoSeleccionado 
-                ? '¡LISTO! BLOQUE COMPLETO' 
-                : faltaSeleccionar 
-                ? `¡CUIDADO! TE FALTA ${idsDelGrupo.length - seleccionadosDelGrupo.length} DÍA` 
-                : `MARCAR LOS ${idsDelGrupo.length} DÍAS JUNTOS`}
+              {todoSeleccionado
+                ? '¡LISTO! BLOQUE COMPLETO'
+                : faltaSeleccionar
+                  ? `MARCASTE ${idsDelGrupo.length - seleccionadosDelGrupo.length} HORARIO`
+                  : `MARCAR LOS ${idsDelGrupo.length} HORARIOS JUNTOS`}
             </span>
           </button>
         )}
@@ -79,11 +77,10 @@ const StudentEnrollmentGroup = ({ group, selectedIds, onToggle }) => {
             <button
               key={horario.id}
               onClick={() => onToggle(horario.id)}
-              className={`h-14 w-14 md:h-16 md:w-16 rounded-2xl font-black text-[10px] transition-all duration-300 flex flex-col items-center justify-center relative border-2 ${
-                isSelected 
-                ? 'bg-[#1e3a8a] border-[#1e3a8a] text-white shadow-xl scale-110 z-10' 
+              className={`h-14 w-14 md:h-16 md:w-16 rounded-2xl font-black text-[10px] transition-all duration-300 flex flex-col items-center justify-center relative border-2 ${isSelected
+                ? 'bg-[#1e3a8a] border-[#1e3a8a] text-white shadow-xl scale-110 z-10'
                 : 'bg-white border-transparent text-slate-400 hover:border-orange-400'
-              }`}
+                }`}
             >
               <span className="italic">{daysShort[horario.dia_semana]}</span>
               <span className={`text-[6px] font-black mt-1 px-2 py-0.5 rounded-full ${isSelected ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-400'}`}>

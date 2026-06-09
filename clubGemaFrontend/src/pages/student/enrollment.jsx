@@ -20,7 +20,6 @@ const Enrollment = () => {
   const [submitting, setSubmitting] = useState(false);
   const [horarios, setHorarios] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [incluyeCamiseta, setIncluyeCamiseta] = useState(false);
   const [pendingPayment, setPendingPayment] = useState(null);
   const [activeSede, setActiveSede] = useState(null);
   const [previewModal, setPreviewModal] = useState({ open: false, data: null });
@@ -49,15 +48,13 @@ const Enrollment = () => {
         }
       }
       if (resC.ok) {
-        const deuda = dataC.data?.find(c => 
-          c.alumno_id == userId && (c.estado === 'PENDIENTE' || c.estado === 'PARCIAL')
-        );
+        const deuda = dataC.data?.find(c => c.estado === 'PENDIENTE' || c.estado === 'PARCIAL');
         setPendingPayment(deuda);
       }
-    } catch (e) { 
-      toast.error("Error de sincronización Gema"); 
-    } finally { 
-      setLoading(false); 
+    } catch (e) {
+      toast.error("Error de sincronización Gema");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,7 +70,7 @@ const Enrollment = () => {
 
   const sedesDisponibles = useMemo(() => [...new Set(horarios.map(h => h.cancha?.sede?.nombre))].sort(), [horarios]);
   const agendaSeleccionada = useMemo(() => horarios.filter(h => selectedIds.includes(h.id)), [horarios, selectedIds]);
-  
+
   const resumenMatricula = useMemo(() => {
     const resumen = {};
     const days = ["", "LUN", "MAR", "MIE", "JUE", "VIE", "SAB", "DOM"];
@@ -101,7 +98,7 @@ const Enrollment = () => {
   const toggleSelection = (id) => {
     const claseNueva = horarios.find(h => h.id === id);
     if (!selectedIds.includes(id)) {
-      const choque = agendaSeleccionada.find(h => 
+      const choque = agendaSeleccionada.find(h =>
         h.dia_semana === claseNueva.dia_semana && (
           (claseNueva.hora_inicio >= h.hora_inicio && claseNueva.hora_inicio < h.hora_fin) ||
           (claseNueva.hora_fin > h.hora_inicio && claseNueva.hora_fin <= h.hora_fin)
@@ -117,9 +114,9 @@ const Enrollment = () => {
     setSubmitting(true);
     try {
       // 🚩 CAMBIO AQUÍ: Ahora enviamos el userId y los selectedIds para la lógica de enganche
-      const response = await apiFetch.post(API_ROUTES.ASISTENCIAS.PREVISUALIZAR, { 
+      const response = await apiFetch.post(API_ROUTES.ASISTENCIAS.PREVISUALIZAR, {
         alumno_id: userId,
-        horario_ids: selectedIds 
+        horario_ids: selectedIds
       });
       const result = await response.json();
       if (response.ok) setPreviewModal({ open: true, data: result.data });
@@ -134,14 +131,12 @@ const Enrollment = () => {
       const response = await apiFetch.post(API_ROUTES.INSCRIPCIONES.BASE, {
         alumno_id: userId,
         horario_ids: selectedIds,
-        fecha_inicio_electiva: fechaElectiva,
-        incluye_camiseta: incluyeCamiseta
+        fecha_inicio_electiva: fechaElectiva
       });
       if (response.ok) {
         toast.success("¡Reserva generada!");
         await fetchInitialData();
         setSelectedIds([]);
-        setIncluyeCamiseta(false);
       } else {
         const result = await response.json();
         // Aquí puedes capturar el throw new Error del backend si está "ACTIVO"
@@ -158,7 +153,7 @@ const Enrollment = () => {
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc]">
-      
+
       {/* 🚨 ZONA DE ALERTA CRÍTICA (BANNER SUPERIOR STICKY) */}
       {pendingPayment && (
         <div className="w-full bg-slate-900 py-4 border-b-4 border-orange-500 shadow-2xl sticky top-0 z-[200] animate-in slide-in-from-top duration-500">
@@ -169,10 +164,10 @@ const Enrollment = () => {
               </div>
               <p className="text-[11px] font-black text-orange-500 uppercase italic tracking-[0.3em]">Acción Administrativa Requerida</p>
             </div>
-            <OutstandingDebtAlert 
-              pendingPayment={pendingPayment} 
+            <OutstandingDebtAlert
+              pendingPayment={pendingPayment}
               onRefresh={fetchInitialData}
-              onPay={handleOpenPayment} 
+              onPay={handleOpenPayment}
             />
           </div>
         </div>
@@ -221,13 +216,6 @@ const Enrollment = () => {
       {/* FOOTER FLOTANTE SELECCIÓN */}
       {selectedIds.length > 0 && (
         <div className="fixed bottom-10 inset-x-0 flex flex-col items-center z-[150] px-4 pointer-events-none">
-          <label className="pointer-events-auto flex items-center gap-4 bg-[#0f172a] text-white px-6 py-3.5 rounded-[1.8rem] mb-3 border-2 border-white/20 shadow-2xl cursor-pointer hover:bg-slate-900 transition-all active:scale-95 group">
-            <input type="checkbox" checked={incluyeCamiseta} onChange={(e) => setIncluyeCamiseta(e.target.checked)} className="w-5 h-5 accent-orange-500" />
-            <div className="flex flex-col">
-              <span className="text-[11px] font-black uppercase italic leading-none group-hover:text-orange-400">¡Quiero mi camiseta!</span>
-              <span className="text-[8px] font-bold text-blue-300 uppercase mt-1">+ S/ 50.00 ADICIONALES</span>
-            </div>
-          </label>
 
           <div className="bg-[#1e3a8a] text-white p-4 rounded-[2rem] shadow-2xl border-4 border-white mb-3 pointer-events-auto flex gap-4 items-center w-full max-w-md animate-fade-in-up">
             <div className="bg-orange-500 p-2.5 rounded-xl shrink-0"><Zap size={20} fill="white" /></div>
@@ -259,21 +247,21 @@ const Enrollment = () => {
       {/* MODAL DE PAGO (Z-INDEX 1000) */}
       {isPayModalOpen && (
         <div className="fixed inset-0 z-[1000]">
-          <ReportPaymentModal 
-            isOpen={isPayModalOpen} 
-            onClose={() => setIsPayModalOpen(false)} 
-            debt={selectedDebtForPay} 
-            onSuccess={() => { setIsPayModalOpen(false); fetchInitialData(); }} 
+          <ReportPaymentModal
+            isOpen={isPayModalOpen}
+            onClose={() => setIsPayModalOpen(false)}
+            debt={selectedDebtForPay}
+            onSuccess={() => { setIsPayModalOpen(false); fetchInitialData(); }}
           />
         </div>
       )}
 
       {/* MODALES DE SOPORTE */}
-      <EnrollmentDateModal 
-        isOpen={previewModal.open} 
-        previewData={previewModal.data} 
-        onClose={() => setPreviewModal({ open: false, data: null })} 
-        onConfirm={confirmarMatriculaFinal} 
+      <EnrollmentDateModal
+        isOpen={previewModal.open}
+        previewData={previewModal.data}
+        onClose={() => setPreviewModal({ open: false, data: null })}
+        onConfirm={confirmarMatriculaFinal}
       />
     </div>
   );

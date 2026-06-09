@@ -207,7 +207,7 @@ const AdminSchedule = ({ onBack, initialData }) => {
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Coordinador</label>
                                 <select
-                                    value={commonData.coordinador_id || ''} // Aseguramos que si es null, muestre la opción vacía
+                                    value={commonData.coordinador_id || ''}
                                     onChange={(e) => {
                                         const val = e.target.value;
                                         setCommonData({

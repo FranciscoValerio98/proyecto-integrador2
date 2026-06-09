@@ -4,8 +4,14 @@
 export const validarMuroDeDeuda = async (tx, alumnoId) => {
   const deudasPendientes = await tx.cuentas_por_cobrar.count({
     where: {
-      alumno_id: Number.parseInt(alumnoId),
-      estado: { in: ['PENDIENTE', 'PARCIAL','POR_VALIDAR'] },
+      inscripciones_deudas_link: {
+        some: {
+          inscripciones: {
+            alumno_id: Number.parseInt(alumnoId),
+          }
+        }
+      },
+      estado: { in: ['PENDIENTE', 'PARCIAL', 'POR_VALIDAR'] },
     },
   });
 
@@ -19,7 +25,7 @@ export const validarMuroDeDeuda = async (tx, alumnoId) => {
 /**
  * Valida si un horario específico tiene cupos disponibles considerando inscripciones activas y temporales.
  */
-export const validarAforoHorario = async (tx, idHorario, fechaLimiteZombie) => {
+export const validarAforoHorario = async (tx, idHorario) => {
   const horario = await tx.horarios_clases.findUnique({ where: { id: idHorario } });
   if (!horario) throw new Error(`El horario ID ${idHorario} no existe.`);
 
@@ -30,12 +36,7 @@ export const validarAforoHorario = async (tx, idHorario, fechaLimiteZombie) => {
         { estado: 'ACTIVO' },
         { estado: 'POR_VALIDAR' },
         { estado: 'VENCIDO' },
-        {
-          AND: [
-            { estado: 'PENDIENTE_PAGO' },
-            { fecha_inscripcion: { gt: fechaLimiteZombie } },
-          ],
-        },
+        { estado: 'PENDIENTE_PAGO' },
       ],
     },
   });
@@ -59,25 +60,4 @@ export const existeRenovacionReciente = async (tx, alumnoId, inicioBusqueda) => 
     },
   });
   return !!deuda;
-};
-
-// =================================================================
-// 🔥 NUEVO FILTRO 6: EL MURO DE RECUPERACIONES
-// =================================================================
-/**
- * Verifica si el alumno tiene recuperaciones pendientes o programadas.
- */
-export const validarSinRecuperacionesPendientes = async (tx, alumnoId) => {
-  const recuperacionesPendientes = await tx.recuperaciones.count({
-    where: {
-      alumno_id: Number.parseInt(alumnoId),
-      estado: { in: ['PENDIENTE', 'PROGRAMADA'] },
-    },
-  });
-
-  if (recuperacionesPendientes > 0) {
-    throw new Error(
-      '⛔ BLOQUEO POR RECUPERACIÓN: Tienes clases por recuperar. Debes agendar y asistir a tus clases pendientes antes de comprar un nuevo paquete.'
-    );
-  }
 };

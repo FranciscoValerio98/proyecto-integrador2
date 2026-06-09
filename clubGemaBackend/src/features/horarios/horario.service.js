@@ -9,7 +9,6 @@ const HORARIO_SELECT = {
   hora_fin: true,
   capacidad_max: true,
   activo: true,
-  minutos_reserva_especifico: true,
   canchas: {
     select: {
       id: true,
@@ -18,11 +17,11 @@ const HORARIO_SELECT = {
     },
   },
   niveles_entrenamiento: { select: { id: true, nombre: true } },
-  coordinadores: {
+  usuarios: {
     select: {
-      usuario_id: true,
-      especializacion: true,
-      usuarios: { select: { nombres: true, apellidos: true } },
+      id: true,
+      nombres: true,
+      apellidos: true,
     },
   },
 };
@@ -119,7 +118,6 @@ const formatearHorario = (h) => ({
   hora_fin: h.hora_fin.toISOString().substring(11, 16),
   capacidad_max: h.capacidad_max,
   activo: h.activo,
-  minutos_reserva_especifico: h.minutos_reserva_especifico,
   cancha: {
     id: h.canchas.id,
     nombre: h.canchas.nombre,
@@ -132,10 +130,9 @@ const formatearHorario = (h) => ({
     id: h.niveles_entrenamiento.id,
     nombre: h.niveles_entrenamiento.nombre,
   },
-  coordinador: h.coordinadores ? {
-    id: h.coordinadores.usuario_id,
-    nombre_completo: `${h.coordinadores.usuarios.nombres} ${h.coordinadores.usuarios.apellidos}`,
-    especializacion: h.coordinadores.especializacion,
+  usuarios: h.usuarios ? {
+    id: h.usuarios.id,
+    nombre_completo: `${h.usuarios.nombres} ${h.usuarios.apellidos}`,
   } : {
     id: null,
     nombre_completo: 'Sin asignar',
@@ -165,9 +162,9 @@ export const horarioService = {
     ];
 
     if (coordinador_id) {
-      validaciones.push(prisma.coordinadores.findUnique({
-        where: { usuario_id: coordinador_id },
-        select: { usuario_id: true }
+      validaciones.push(prisma.usuarios.findUnique({
+        where: { id: coordinador_id },
+        select: { id: true }
       }));
     }
 
@@ -182,7 +179,6 @@ export const horarioService = {
 
     const { horaInicioDate, horaFinDate } = parsearHoras(data.hora_inicio, data.hora_fin);
 
-    // Verificar solapamientos (cancha + coordinador en paralelo)
     await verificarSolapamientos({
       cancha_id,
       coordinador_id,
@@ -200,7 +196,6 @@ export const horarioService = {
         hora_inicio: horaInicioDate,
         hora_fin: horaFinDate,
         capacidad_max: data.capacidad_max ?? 20,
-        minutos_reserva_especifico: data.minutos_reserva_especifico ?? null,
         activo: true,
       },
       select: HORARIO_SELECT,
@@ -219,14 +214,12 @@ export const horarioService = {
         hora_inicio: true,
         hora_fin: true,
         capacidad_max: true,
-        minutos_reserva_especifico: true,
         activo: true,
       },
     });
 
     if (!horarioExistente) throw new ApiError('El horario especificado no existe', 404);
 
-    // Merge: usar valor nuevo si viene, si no, conservar el existente
     const cancha_id = data.cancha_id ?? horarioExistente.cancha_id;
     const coordinador_id = data.coordinador_id === undefined
       ? horarioExistente.coordinador_id
@@ -235,18 +228,12 @@ export const horarioService = {
     const dia_semana = data.dia_semana ?? horarioExistente.dia_semana;
     const nuevoActivo = data.activo ?? horarioExistente.activo;
     const capacidad_max = data.capacidad_max ?? horarioExistente.capacidad_max;
-    const minutos_reserva_especifico =
-      data.minutos_reserva_especifico === undefined
-        ? horarioExistente.minutos_reserva_especifico
-        : data.minutos_reserva_especifico;
 
-    // Parsear horas (nuevas o existentes)
     const horaInicioStr =
       data.hora_inicio || horarioExistente.hora_inicio.toISOString().substring(11, 16);
     const horaFinStr = data.hora_fin || horarioExistente.hora_fin.toISOString().substring(11, 16);
     const { horaInicioDate, horaFinDate } = parsearHoras(horaInicioStr, horaFinStr);
 
-    // Validar existencia de entidades referenciadas (solo si cambiaron)
     const validaciones = [];
     if (data.cancha_id)
       validaciones.push(
@@ -255,9 +242,9 @@ export const horarioService = {
         })
       );
     if (data.coordinador_id) {
-      const r = await prisma.coordinadores.findUnique({
-        where: { usuario_id: coordinador_id },
-        select: { usuario_id: true }
+      const r = await prisma.usuarios.findUnique({
+        where: { id: coordinador_id },
+        select: { id: true }
       });
       if (!r) throw new ApiError('El coordinador especificado no existe', 404);
     }
@@ -294,7 +281,6 @@ export const horarioService = {
         hora_inicio: horaInicioDate,
         hora_fin: horaFinDate,
         capacidad_max,
-        minutos_reserva_especifico,
         activo: nuevoActivo,
       },
       select: HORARIO_SELECT,

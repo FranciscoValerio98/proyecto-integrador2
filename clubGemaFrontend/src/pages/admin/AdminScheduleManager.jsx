@@ -106,7 +106,7 @@ const AdminSchedulesManager = () => {
         return horarios.filter(h => {
             const matchesDia = filterDia === '' || h.dia_semana.toString() === filterDia;
             const matchesSede = filterSede === '' || h.cancha.sede.nombre === filterSede;
-            const nombreCoordinador = h.coordinador?.nombre_completo || 'Sin asignar';
+            const nombreCoordinador = h.usuarios?.nombre_completo || 'Sin asignar';
             const matchesProf = filterCoordinador === '' || nombreCoordinador === filterCoordinador;
             const matchesSearch = searchTerm === '' ||
                 nombreCoordinador.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,7 +125,7 @@ const AdminSchedulesManager = () => {
 
     // Obtener opciones únicas para los selects de filtro
     const uniqueSedes = [...new Set(horarios.map(h => h.cancha.sede.nombre))];
-    const uniqueCoordinadores = [...new Set(horarios.map(h => h.coordinador.nombre_completo))];
+    const uniqueCoordinadores = [...new Set(horarios.map(h => h.usuarios.nombre_completo))];
 
     if (view === 'create') return <AdminSchedule onBack={() => setView('list')} />;
     if (view === 'edit') return <AdminSchedule onBack={() => { setView('list'); setSelectedHorario(null); }} initialData={selectedHorario} />;
@@ -235,7 +235,7 @@ const AdminSchedulesManager = () => {
                                         <div className="flex items-center gap-2 text-slate-500">
                                             <User size={14} className="shrink-0 text-orange-500" />
                                             <span className="text-[11px] font-bold uppercase truncate">
-                                                {h.coordinador.nombre_completo}
+                                                {h.usuarios.nombre_completo}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2 text-slate-500">
