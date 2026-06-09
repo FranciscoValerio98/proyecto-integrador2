@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // 🚀 NUEVA ORGANIZACIÓN LÓGICA PARA EL ADMIN
     const menuGroups = [
         {
-            title: 'Principal',
+            title: 'Dashboard',
             type: 'link',
             icon: LayoutDashboard,
             path: '/dashboard/admin'

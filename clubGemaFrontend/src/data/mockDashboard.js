@@ -8,7 +8,7 @@ export const roleData = {
             { id: "sedes", title: "Sedes Gema", value: "0", icon: MapPin, color: "purple" },
             { id: "pendientes", title: "Deudas Pendientes", value: "$0.00", icon: AlertCircle, color: "gray" },
         ],
-        recentTitle: "Movimientos del Club",
+        recentTitle: "Últimos Movimientos del Club",
         activity: [
             { id: 1, text: "Nueva inscripción detectada", date: "Hoy" },
             { id: 2, text: "Pago validado por Administración", date: "Ayer" },

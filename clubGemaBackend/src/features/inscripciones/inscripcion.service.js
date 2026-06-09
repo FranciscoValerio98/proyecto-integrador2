@@ -1,4 +1,5 @@
 import { prisma } from '../../config/database.config.js';
+import crypto from 'crypto';
 import * as Utils from './utils/inscripcion.util.js';
 import * as Validators from './validators/inscripcion.validator.js';
 import * as Logic from './logic/inscripcion.logic.js';
@@ -43,6 +44,7 @@ export const inscripcionService = {
 
         // 🔄 PASO 4: PROCESAR HORARIOS (Independencia Radical)
         const inscripcionesCreadas = [];
+        const grupoUuid = crypto.randomUUID();
 
         // La fecha de inicio es la electiva o hoy. Cada slot tendrá esta misma fecha de inicio.
         const inicioReal = fecha_inicio_electiva ? dayjs(fecha_inicio_electiva).tz(TZ_LIMA).hour(12).toDate() : dayjs().tz(TZ_LIMA).hour(12).toDate();
@@ -56,6 +58,7 @@ export const inscripcionService = {
             data: {
               alumno_id: parseInt(alumno_id),
               horario_id: idHorario,
+              id_grupo_transaccion: grupoUuid,
               estado: 'PENDIENTE_PAGO',
               fecha_inscripcion: inicioReal,
             },
@@ -624,6 +627,7 @@ export const inscripcionService = {
           estado: 'ACTIVO',
           actualizado_en: new Date(),
           creado_en: insc.creado_en,
+          id_grupo_transaccion: insc.id_grupo_transaccion,
         },
         include: {
           horarios_clases: true

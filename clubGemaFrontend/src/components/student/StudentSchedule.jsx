@@ -57,7 +57,7 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
       <div className="px-5 py-4 md:px-8 md:py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
         <div className="flex items-center gap-3">
           <div className="w-1.5 md:w-2 h-6 md:h-8 bg-[#1e3a8a] rounded-full"></div>
-          <h2 className="font-black text-[#1e3a8a] uppercase tracking-tight text-sm md:text-lg italic leading-none">Mi Plan de<br className="md:hidden"/> Entrenamiento</h2>
+          <h2 className="font-black text-[#1e3a8a] uppercase tracking-tight text-sm md:text-lg italic leading-none">Mi Plan de<br className="md:hidden" /> Entrenamiento</h2>
         </div>
         <Zap size={20} className="text-orange-500 fill-orange-500/20 shrink-0" />
       </div>
@@ -74,17 +74,17 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
               const horario = sesion?.inscripciones?.horarios_clases || sesion?.horarios_clases;
               const esRecuperacion = sesion.horario_destino_id || sesion.isRecuperacion;
               const estadoReal = sesion.estado === 'COMPLETADA_PRESENTE' ? 'PRESENTE' : sesion.estado === 'COMPLETADA_FALTA' ? 'FALTA' : sesion.estado;
-              
-              const coordinatorData = horario?.coordinadores?.usuarios;
+
+              const coordinatorData = horario?.usuarios;
               const nombreLider = coordinatorData ? `${coordinatorData.nombres.trim()} ${coordinatorData.apellidos.trim()}` : 'COORDINADOR GEMA';
 
               const horaInicioMostrar = sesion.reprogramaciones_clases ? sesion.reprogramaciones_clases.hora_inicio_destino + ":00" : horario?.hora_inicio;
               const horaFinMostrar = sesion.reprogramaciones_clases ? sesion.reprogramaciones_clases.hora_fin_destino + ":00" : horario?.hora_fin;
-              
+
               const fechaObj = parseLocalDate(sesion.fecha || sesion.fecha_programada);
               const fechaSesionFinDia = new Date(fechaObj);
               fechaSesionFinDia.setHours(23, 59, 59, 0);
-              
+
               const esPasada = fechaSesionFinDia < hoy && estadoReal === 'PROGRAMADA';
               const esPresente = estadoReal === 'PRESENTE';
               const esFalta = estadoReal === 'FALTA';
@@ -104,7 +104,7 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
                       <RefreshCw size={8} className="md:w-2.5 md:h-2.5" /> RECUPERACIÓN
                     </div>
                   )}
-                  
+
                   <div className="p-4 md:p-5 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
 
                     {/* SECCIÓN FECHA Y HORA */}
@@ -113,7 +113,7 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
                         <span className="text-[7px] md:text-[9px] opacity-70 uppercase italic leading-none mt-1">{diasSemana[fechaObj.getDay()]}</span>
                         <span className="text-xl md:text-2xl leading-none">{fechaObj.getDate()}</span>
                       </div>
-                      
+
                       <div className="text-left flex-1">
                         <div className="flex items-center gap-1 text-orange-500 font-black">
                           <Clock size={10} className="md:w-3 md:h-3 shrink-0" />
@@ -121,7 +121,7 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
                             {formatTimeDirect(horaInicioMostrar)} - {formatTimeDirect(horaFinMostrar)}
                           </span>
                         </div>
-                        
+
                         {/* 🔥 ADIÓS A LA PALABRA "REGULAR". SOLO MOSTRAR SI ES ESPECIAL */}
                         {(esReprogramado || sesion.fecha_original || sesion.tipo_sesion === 'REPOSICION') && (
                           <h4 className="flex items-center gap-1 text-[10px] md:text-[11px] font-black text-[#1e3a8a] uppercase italic leading-tight mt-0.5 line-clamp-1">
@@ -142,7 +142,7 @@ const StudentSchedule = ({ attendance = [], filtroMes, filtroAnio }) => {
 
                     {/* SECCIÓN DETALLES (TEXTOS COMPLETOS) */}
                     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6">
-                      
+
                       <div className="space-y-0.5 text-left">
                         <p className="text-[7px] md:text-[8px] font-black text-slate-400 uppercase tracking-widest">Sede</p>
                         <div className="flex items-start gap-1 text-[9px] md:text-[10px] font-bold text-slate-600 uppercase italic">

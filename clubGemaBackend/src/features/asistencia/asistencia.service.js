@@ -124,23 +124,19 @@ export const asistenciaService = {
         },
       },
       include: {
-        reprogramaciones_clases: true,
         inscripciones: {
           include: {
             horarios_clases: {
               include: {
                 canchas: { include: { sedes: true } },
-                coordinadores: {
-                  select: {
-                    usuarios: {
-                      select: {
-                        nombres: true,
-                        apellidos: true,
-                      },
-                    },
-                  },
-                },
                 niveles_entrenamiento: true,
+                usuarios: true
+              },
+            },
+            usuarios: {
+              select: {
+                nombres: true,
+                apellidos: true,
               },
             },
           },

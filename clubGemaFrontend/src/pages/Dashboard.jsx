@@ -43,7 +43,7 @@ const StatCard = ({ id, title, value, icon: Icon, color }) => {
                     <Icon size={24} strokeWidth={2.5} />
                 </div>
                 <div className="flex flex-col items-end">
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">Real Time</span>
+                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">live</span>
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mt-1"></div>
                 </div>
             </div>
@@ -294,7 +294,7 @@ const Dashboard = ({ role = 'student' }) => {
             <div className="mb-10 pt-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-[#1e3a8a] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Gema Performance</span>
+                        <span className="bg-[#1e3a8a] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Estadísticas del Club Gema</span>
                         <div className="h-[1px] w-12 bg-slate-200"></div>
                     </div>
                     <h1 className="text-5xl md:text-6xl font-black text-[#1e3a8a] tracking-tight uppercase italic leading-[0.9]">
@@ -340,10 +340,10 @@ const Dashboard = ({ role = 'student' }) => {
             <div className="mb-16 pt-8 border-t border-slate-200/60">
                 <div className="mb-10">
                     <h2 className="text-4xl font-black text-[#1e3a8a] uppercase tracking-tighter italic">
-                        Inteligencia <span className="text-orange-500 underline decoration-orange-500/20 underline-offset-8">Financiera y Operativa</span>
+                        Control <span className="text-orange-500 underline decoration-orange-500/20 underline-offset-8">Financiero y Operativo</span>
                     </h2>
                     <p className="text-slate-400 text-xs font-black uppercase tracking-[0.2em] mt-3">
-                        Análisis de Resultados ({selectedYear})
+                        Análisis de Resultados
                     </p>
                 </div>
 
@@ -532,7 +532,6 @@ const Dashboard = ({ role = 'student' }) => {
                             <h2 className="font-black text-[#1e3a8a] uppercase tracking-tight text-xl italic mb-1 flex items-center gap-2">
                                 <div className="w-1.5 h-6 bg-orange-500 rounded-full"></div> Rangos de Edad
                             </h2>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest ml-3.5">Métricas de Crecimiento</p>
                         </div>
 
                         <div style={{ width: '100%', height: 300 }}>
@@ -573,7 +572,7 @@ const Dashboard = ({ role = 'student' }) => {
             <div className="pt-10 border-t border-slate-200/60 mt-10">
                 <div className="flex items-center gap-3 mb-8">
                     <BarChart2 className="text-orange-500" size={20} />
-                    <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Gestión Operativa</h2>
+                    <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Resumen de Actividad</h2>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

@@ -76,6 +76,7 @@ model inscripciones {
   estado                        String?                @default("PENDIENTE_PAGO") @db.VarChar(20)
   actualizado_en                DateTime?              @default(now()) @db.Timestamp(6)
   creado_en                     DateTime?              @default(now()) @db.Timestamp(6)
+  id_grupo_transaccion          String?                @db.Uuid
   usuarios                      usuarios               @relation(fields: [alumno_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   horarios_clases               horarios_clases        @relation(fields: [horario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   registros_asistencia          registros_asistencia[]

@@ -37,16 +37,9 @@ export const notificacionesService = {
   // 🔥 SOLUCIÓN: Busca tanto en usuario_id como en alumno_id
   obtenerPorUsuario: async (usuarioId) => {
     return await prisma.notificaciones.findMany({
-      where: {
-        OR: [
-          { usuario_id: usuarioId },
-          { alumno_id: usuarioId }
-        ]
-      },
+      where: { usuario_id: usuarioId },
       include: {
-        alumnos: {
-          include: { usuarios: { select: { nombres: true, apellidos: true } } }
-        }
+        usuarios: { select: { nombres: true, apellidos: true } }
       },
       orderBy: { creado_en: 'desc' },
       take: 50
@@ -57,10 +50,7 @@ export const notificacionesService = {
   obtenerConteoNoLeidas: async (usuarioId) => {
     return await prisma.notificaciones.count({
       where: {
-        OR: [
-          { usuario_id: usuarioId },
-          { alumno_id: usuarioId }
-        ],
+        usuario_id: usuarioId,
         leido: false
       }
     });

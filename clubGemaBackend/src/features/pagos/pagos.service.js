@@ -210,10 +210,9 @@ export const pagosService = {
     return await prisma.pagos.findMany({
       include: {
         cuentas_por_cobrar: {
-          include: { alumnos: { include: { usuarios: true } } },
+          include: { inscripciones_deudas_link: { select: { inscripciones: { select: { usuarios: true } } } } },
         },
         metodos_pago: true,
-        administrador: { include: { usuarios: true } },
       },
       orderBy: { fecha_pago: 'desc' },
     });
@@ -295,21 +294,33 @@ export const pagosService = {
     return await prisma.pagos.findMany({
       where: {
         cuentas_por_cobrar: {
-          alumno_id: Number.parseInt(alumnoId),
+          inscripciones_deudas_link: {
+            some: {
+              inscripciones: {
+                usuarios: {
+                  id: Number.parseInt(alumnoId),
+                }
+              }
+            }
+          }
         },
       },
       include: {
         cuentas_por_cobrar: {
           include: {
-            alumnos: {
-              include: { usuarios: true },
+            inscripciones_deudas_link: {
+              take: 1,
+              select: {
+                inscripciones: {
+                  select: {
+                    usuarios: true,
+                  }
+                }
+              }
             },
           },
         },
         metodos_pago: true,
-        administrador: {
-          include: { usuarios: true },
-        },
       },
       orderBy: { fecha_pago: 'desc' },
     });
