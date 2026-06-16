@@ -70,52 +70,6 @@ const Payments = () => {
 
       <PaymentMethodCard />
 
-      {/* 🔥 AVISO DE CONTINUIDAD GEMA PREMIUM - VERSIÓN FINAL ALINEADA 🔥 */}
-      {activeDebts.length > 0 && (
-        <div className="w-full my-12 relative overflow-hidden shadow-2xl rounded-[3rem] group">
-          {/* Fondo con Gradiente Sólido */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#ff4d4d] via-[#f87171] to-[#ff4d4d] opacity-95"></div>
-
-          <div className="relative z-10 w-full p-8 md:p-12 border-4 border-white/40 rounded-[3rem] flex flex-col md:flex-row items-center gap-8 md:gap-12">
-
-            {/* Icono con Pulso de Alerta */}
-            <div className="bg-white shadow-xl p-5 rounded-[2.2rem] shrink-0">
-              <ShieldAlert size={48} strokeWidth={2.5} className="text-[#ff4d4d] animate-pulse" />
-            </div>
-
-            <div className="flex-1 text-center md:text-left">
-              {/* Cabecera con Badge de Estado */}
-              <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                <h4 className="font-black uppercase italic tracking-tighter text-3xl md:text-4xl text-white leading-none">
-                  Aviso de Continuidad <span className="text-red-100">Crítico</span>
-                </h4>
-                <span className="bg-white/20 backdrop-blur-sm text-white text-[9px] font-black px-4 py-1.5 rounded-full border border-white/40 uppercase tracking-[0.2em]">
-                  Estado Administrativo
-                </span>
-              </div>
-
-              {/* Mensaje con Cápsulas Rectas (Sin inclinaciones chuecas) */}
-              <div className="text-[13px] md:text-[15px] font-bold text-white/95 leading-relaxed uppercase tracking-tight">
-                Estimado alumno: Le informamos que el acceso a nuevas inscripciones y el derecho al beneficio de
-                <span className="inline-block mx-2 bg-white text-[#ff4d4d] px-4 py-1.5 rounded-xl font-black italic shadow-md">
-                  Recuperación de Clases
-                </span>
-                se encuentran suspendidos temporalmente hasta la liquidación del
-                <span className="inline-block mx-2 bg-[#1e3a8a] text-white px-4 py-1.5 rounded-xl font-black italic shadow-md">
-                  Pago Completo
-                </span>
-                de sus deudas pendientes.
-              </div>
-            </div>
-
-            {/* Decoración de Fondo Limpia */}
-            <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
-              <ShieldAlert size={180} color="white" />
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         {/* CUENTAS PENDIENTES */}
         <section>

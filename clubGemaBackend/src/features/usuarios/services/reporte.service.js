@@ -4,25 +4,28 @@ export const reporteService = {
   async getDetailedExcelReport() {
     try {
       // Obtenemos todos los alumnos para asegurar los 518+ registros
-      const todosLosAlumnos = await prisma.alumnos.findMany({
+      const todosLosAlumnos = await prisma.usuarios.findMany({
+        where: { roles: { nombre: 'Alumno' } },
         include: {
-          usuarios: true,
           inscripciones: {
-            // No filtramos aquí para poder ver qué sedes tenían antes
             include: {
               horarios_clases: {
                 include: {
                   niveles_entrenamiento: true,
                   canchas: { include: { sedes: true } }
                 }
+              },
+              inscripciones_deudas_link: {
+                select: {
+                  cuentas_por_cobrar: true,
+                },
+                orderBy: { cuenta_id: 'desc' },
+                take: 1
               }
-            }
-          },
-          cuentas_por_cobrar: {
-            orderBy: { fecha_vencimiento: 'desc' },
-            take: 1
+            },
+            orderBy: { fecha_inscripcion: 'desc' }
           }
-        }
+        },
       });
 
       if (!todosLosAlumnos || todosLosAlumnos.length === 0) return [];
@@ -30,9 +33,9 @@ export const reporteService = {
       const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
       return todosLosAlumnos.map((alumno) => {
-        const usu = alumno?.usuarios;
-        const ultimaCuota = alumno?.cuentas_por_cobrar?.[0];
-        
+        const usu = alumno;
+        const ultimaCuota = alumno?.inscripciones?.[0]?.inscripciones_deudas_link?.[0]?.cuentas_por_cobrar;
+
         // --- LÓGICA DE VIGENCIA REAL ---
         // Un alumno es vigente si tiene al menos una inscripción 'ACTIVO'
         const tieneInscripcionActiva = alumno.inscripciones?.some(
