@@ -11,9 +11,8 @@ export const catalogoService = {
 
   findVigentes: async () => {
     return await prisma.catalogo_conceptos.findMany({
-      where: { 
+      where: {
         activo: true,
-        es_vigente: true 
       },
       orderBy: { precio_base: 'asc' },
     });

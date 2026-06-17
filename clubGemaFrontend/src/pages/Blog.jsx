@@ -11,31 +11,31 @@ import { API_ROUTES } from '../constants/apiRoutes';
 
 const Blog = () => {
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [featuredPost, setFeaturedPost] = useState(null);
 
-  const fetchPublicaciones = async () => {
-    setLoading(true);
-    try {
-      const response = await apiFetch.get(API_ROUTES.PUBLICACIONES.BASE);
-      const result = await response.json();
-      if (response.ok) {
-        const ordenadas = (result.data || []).sort((a, b) =>
-          new Date(b.creado_en) - new Date(a.creado_en)
-        );
-        setPosts(ordenadas);
-        setFeaturedPost(ordenadas[0]);
-      }
-    } catch (error) {
-      console.error("Error al cargar el blog:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchPublicaciones = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await apiFetch.get(API_ROUTES.PUBLICACIONES.BASE);
+  //     const result = await response.json();
+  //     if (response.ok) {
+  //       const ordenadas = (result.data || []).sort((a, b) =>
+  //         new Date(b.creado_en) - new Date(a.creado_en)
+  //       );
+  //       setPosts(ordenadas);
+  //       setFeaturedPost(ordenadas[0]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error al cargar el blog:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchPublicaciones();
-  }, []);
+  // useEffect(() => {
+  //   fetchPublicaciones();
+  // }, []);
 
   const handleSelectPost = (post) => {
     setFeaturedPost(post);
@@ -75,42 +75,54 @@ const Blog = () => {
       </section>
 
       {/* --- ARTÍCULO DESTACADO DINÁMICO --- */}
-      {featuredPost && (
-        <section className="relative z-20 -mt-16 max-w-7xl mx-auto px-6">
-          <div className="bg-white rounded-[50px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-slate-100 flex flex-col lg:flex-row group transition-all duration-500 hover:border-orange-200">
-            <div className="lg:w-1/2 h-[400px] lg:h-auto overflow-hidden bg-slate-100 relative">
-              <img
-                src={featuredPost.imagen_url || "https://images.unsplash.com/photo-1592656094267-764a45160876?w=1200"}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                alt="Destacado"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+      {/* {featuredPost && ( */}
+      <section className="relative z-20 -mt-16 max-w-7xl mx-auto px-6">
+        <div className="bg-white rounded-[50px] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border border-slate-100 flex flex-col lg:flex-row group transition-all duration-500 hover:border-orange-200">
+          <div className="lg:w-1/2 h-[400px] lg:h-auto overflow-hidden bg-slate-100 relative">
+            <img
+              src={
+                //featuredPost.imagen_url ||
+                "https://images.unsplash.com/photo-1592656094267-764a45160876?w=1200"
+              }
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+              alt="Destacado"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+          </div>
+          <div className="lg:w-1/2 p-12 md:p-20 flex flex-col justify-center space-y-8">
+            <div className="flex items-center gap-3 text-orange-600">
+              <TrendingUp size={22} strokeWidth={3} />
+              <span className="text-sm font-black uppercase tracking-[0.2em]">Lectura Principal</span>
             </div>
-            <div className="lg:w-1/2 p-12 md:p-20 flex flex-col justify-center space-y-8">
-              <div className="flex items-center gap-3 text-orange-600">
-                <TrendingUp size={22} strokeWidth={3} />
-                <span className="text-sm font-black uppercase tracking-[0.2em]">Lectura Principal</span>
-              </div>
-              <h2 className="text-5xl md:text-6xl font-black text-[#1e3a8a] uppercase italic tracking-tighter leading-[0.9]">
-                {featuredPost.titulo}
-              </h2>
-              <p className="text-slate-500 text-lg font-medium leading-relaxed italic line-clamp-4">
-                {featuredPost.contenido}
-              </p>
-              <div className="flex items-center gap-8 text-slate-400 text-xs font-bold uppercase tracking-widest pt-8 border-t border-slate-100">
-                <span className="flex items-center gap-2"><Calendar size={16} /> {new Date(featuredPost.creado_en).toLocaleDateString()}</span>
-                <div className="flex items-center gap-3 text-[#1e3a8a]">
-                  {/* LOGO MÁS GRANDE CON FONDO BLANCO */}
-                  <div className="w-12 h-12 bg-white border-2 border-slate-100 rounded-2xl p-1.5 shadow-md">
-                    <img src="/Logo con borde blanco.png" alt="Gema" className="w-full h-full object-contain" />
-                  </div>
-                  <span className="font-black italic text-sm">Club Gema Oficial</span>
+            <h2 className="text-5xl md:text-6xl font-black text-[#1e3a8a] uppercase italic tracking-tighter leading-[0.9]">
+              {
+                //featuredPost.titulo
+                'Campeonato Gema 2026'
+              }
+            </h2>
+            <p className="text-slate-500 text-lg font-medium leading-relaxed italic line-clamp-4">
+              {
+                //featuredPost.contenido
+                'Solo jugadores de nivel Intermedio'
+              }
+            </p>
+            <div className="flex items-center gap-8 text-slate-400 text-xs font-bold uppercase tracking-widest pt-8 border-t border-slate-100">
+              <span className="flex items-center gap-2"><Calendar size={16} /> {
+                //new Date(featuredPost.creado_en).toLocaleDateString()
+                new Date(new Date().setDate(new Date().getDate() + 10)).toLocaleDateString()
+              }</span>
+              <div className="flex items-center gap-3 text-[#1e3a8a]">
+                {/* LOGO MÁS GRANDE CON FONDO BLANCO */}
+                <div className="w-12 h-12 bg-white border-2 border-slate-100 rounded-2xl p-1.5 shadow-md">
+                  <img src="/Logo con borde blanco.png" alt="Gema" className="w-full h-full object-contain" />
                 </div>
+                <span className="font-black italic text-sm">Club Gema Oficial</span>
               </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+      {/* )} */}
 
       {/* --- GRID DE NOTICIAS --- */}
       <section className="max-w-7xl mx-auto px-6 py-32">
