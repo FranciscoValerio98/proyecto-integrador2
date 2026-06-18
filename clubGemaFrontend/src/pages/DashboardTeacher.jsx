@@ -5,36 +5,6 @@ import { useAuth } from '../context/AuthContext';
 import { asistenciaService } from '../services/asistencia.service';
 import toast from 'react-hot-toast';
 
-const instruccionesSistema = [
-  {
-    id: 1,
-    icono: <ChevronRight size={16} className="text-blue-500 shrink-0 mt-0.5" />,
-    texto: (
-      <>
-        Dar clic en <strong className="text-blue-600">TOMAR ASISTENCIA</strong> para abrir el registro del horario correspondiente.<br></br>
-      </>
-    )
-  },
-  {
-    id: 2,
-    icono: <ShieldAlert size={16} className="text-orange-500 shrink-0 mt-0.5" />,
-    texto: (
-      <>
-        Los alumnos marcados como <strong className="text-orange-600">JUSTIFICADO MÉD.</strong> estarán bloqueados por ausencia justificada.
-      </>
-    )
-  },
-  {
-    id: 3,
-    icono: <Clock size={16} className="text-slate-500 shrink-0 mt-0.5" />,
-    texto: (
-      <>
-        Las sesiones <strong className="text-slate-600">FUTURAS</strong> estarán bloqueadas hasta que llegue la fecha correspondiente.
-      </>
-    )
-  }
-];
-
 const DashboardTeacher = () => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [clases, setClases] = useState([]);
@@ -197,24 +167,6 @@ const DashboardTeacher = () => {
             {anios.map(anio => <option key={anio} value={anio}>{anio}</option>)}
           </select>
         </div>
-      </div>
-
-      {/* BANNER DINÁMICO DE INSTRUCCIONES */}
-      <div className="bg-blue-50/80 border border-blue-100 rounded-3xl p-6 shadow-sm">
-        <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest flex items-center gap-2 italic mb-4 ">
-          <Info size={18} className="text-blue-600" />
-          Instrucciones del Coordinador
-        </h3>
-        <ul className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {instruccionesSistema.map((instruccion) => (
-            <li key={instruccion.id} className="flex gap-3 bg-white/60 p-4 rounded-2xl border border-blue-50/50">
-              {instruccion.icono}
-              <p className="text-[11px] text-blue-800 leading-relaxed font-medium">
-                {instruccion.texto}
-              </p>
-            </li>
-          ))}
-        </ul>
       </div>
 
       {/* AGENDA DEPORTIVA */}

@@ -251,7 +251,6 @@ export const asistenciaService = {
               registros_asistencia: {
                 some: {
                   fecha: fechaConsulta,
-                  reprogramacion_clase_id: { not: null }
                 }
               }
             }
@@ -266,21 +265,16 @@ export const asistenciaService = {
         niveles_entrenamiento: true,
         canchas: { include: { sedes: true } },
         inscripciones: {
-          where: { estado: { in: ['ACTIVO', 'PEN-RECU', 'FINALIZADO'] } },
+          where: { estado: { in: ['ACTIVO', 'FINALIZADO'] } },
           include: {
-            alumnos: {
-              include: {
-                usuarios: {
-                  select: { id: true, nombres: true, apellidos: true, numero_documento: true, fecha_nacimiento: true },
-                },
-              },
+            usuarios: {
+              select: { id: true, nombres: true, apellidos: true, numero_documento: true, fecha_nacimiento: true },
             },
             registros_asistencia: {
               where: fecha
                 ? {
                   OR: [
                     { fecha: new Date(fecha) },
-                    { reprogramacion_clase_id: { not: null } }
                   ],
                   estado: { not: 'SIN_REGISTRO' },
                 }
@@ -290,15 +284,6 @@ export const asistenciaService = {
                 id: true,
                 fecha: true,
                 estado: true,
-                comentario: true,
-                fecha_original: true,
-                reprogramacion_clase_id: true,
-                reprogramaciones_clases: {
-                  select: {
-                    hora_inicio_destino: true,
-                    hora_fin_destino: true
-                  }
-                },
               },
             },
           },
@@ -307,96 +292,11 @@ export const asistenciaService = {
       orderBy: { hora_inicio: 'asc' },
     });
 
-    // 🛡️ 2. SOLUCIÓN AL ERROR 500: Creamos un nuevo arreglo para NO mutar la data original de Prisma
-    const horariosProcesados = [];
+    return horarios.map((h) => {
 
-    // Lógica para sumar a los alumnos que recuperarán clases ese dia.
-    for (let horario of horarios) {
-      const alumnosRecuperadores = await prisma.recuperaciones.findMany({
-        where: {
-          horario_destino_id: horario.id,
-          estado: { in: ['PROGRAMADA', 'COMPLETADA_PRESENTE', 'COMPLETADA_FALTA'] },
-        },
-        include: {
-          alumnos: {
-            include: {
-              usuarios: {
-                select: { id: true, nombres: true, apellidos: true, numero_documento: true },
-              },
-            },
-          },
-        },
-      });
-
-      // Damos format a los alumnos para el front
-      const recuperadoresFormat = alumnosRecuperadores.map((rec) => {
-        let estadoFormat = 'PROGRAMADA';
-        if (rec.estado === 'COMPLETADA_PRESENTE') estadoFormat = 'PRESENTE';
-        else if (rec.estado === 'COMPLETADA_FALTA') estadoFormat = 'FALTA';
-
-        return {
-          id: `insc-recu-${rec.id}`,
-          estado: 'RECUPERACION',
-          tipo_sesion: 'RECUPERACION',
-          alumnos: rec.alumnos,
-          registros_asistencia: [
-            {
-              id: `reg-asis-recu-${rec.id}`,
-              fecha: rec.fecha_programada,
-              estado: estadoFormat,
-              comentario: 'Alumno en clase de recuperación',
-              tipo_sesion: 'RECUPERACION'
-            },
-          ],
-        };
-      });
-
-      // 🌟 Combinamos las inscripciones de forma segura en un NUEVO objeto
-      horariosProcesados.push({
-        ...horario,
-        inscripciones: [
-          ...horario.inscripciones.map(ins => {
-            const reg = ins.registros_asistencia[0];
-            const tipo = reg?.estado === 'REPROGRAMADO'
-              ? 'REPROGRAMADO'
-              : reg?.fecha_original
-                ? 'REPOSICION'
-                : 'REGULAR';
-
-            return {
-              ...ins,
-              tipo_sesion: tipo,
-              registros_asistencia: ins.registros_asistencia.map(r => ({
-                ...r,
-                tipo_sesion: r.estado === 'REPROGRAMADO'
-                  ? 'REPROGRAMADO'
-                  : r.fecha_original
-                    ? 'REPOSICION'
-                    : 'REGULAR'
-              }))
-            };
-          }),
-          ...recuperadoresFormat
-        ],
-      });
-    }
-
-    // TRANSFORMACIÓN: Limpiamos la data usando el nuevo arreglo procesado
-    return horariosProcesados.map((h) => {
-      // Filtramos los registros "Fantasma" de las inscripciones regulares
-      h.inscripciones.forEach((insc) => {
-        if (insc.estado !== 'RECUPERACION') {
-          insc.registros_asistencia = insc.registros_asistencia.filter(
-            (reg) => !reg.comentario?.includes('[RECUPERACION]')
-          );
-        }
-      });
-
-      // Función interna para extraer solo HH:mm y evitar el bug de 1970
       const formatTime = (timeField) => {
         if (!timeField) return '--:--';
         const d = new Date(timeField);
-        // transformamos a string la hora y minutos para evitar el cambio de zona horario en el front.
         const horas = d.getUTCHours().toString().padStart(2, '0');
         const minutos = d.getUTCMinutes().toString().padStart(2, '0');
         return `${horas}:${minutos}`;
@@ -486,124 +386,26 @@ export const asistenciaService = {
 
     return await prisma.$transaction(async (tx) => {
       for (const a of asistencias) {
-        // Por si el alumno es de recuperación
-        if (typeof a.id === 'string' && a.id.startsWith('reg-asis-recu-')) {
-          const recuperacionId = parseInt(a.id.split('-')[3]);
-
-          // Marcar el ticket de recuperación
-          const recu = await tx.recuperaciones.update({
-            where: { id: recuperacionId },
-            data: {
-              estado: a.estado === 'FALTA'
-                ? 'COMPLETADA_FALTA'
-                : a.estado === 'PRESENTE'
-                  ? 'COMPLETADA_PRESENTE'
-                  : a.estado
-            }
-          });
-
-          if (esFechaFutura(recu.fecha_programada)) {
-            throw new Error("No se puede registrar recuperación en una fecha futura.");
-          }
-
-          const inscActiva = await tx.inscripciones.findFirst({
-            where: { alumno_id: recu.alumno_id, estado: { in: ['ACTIVO', 'PEN-RECU'] } },
-          });
-
-          if (inscActiva) {
-            // Obtenemos el registro si en caso existiera para manejarlo por posible error humano (marcar PRESENTE a un alumno que nunca llegó)
-            const registroFisicoExistente = await tx.registros_asistencia.findFirst({
-              where: {
-                inscripcion_id: inscActiva.id,
-                fecha: recu.fecha_programada,
-                comentario: { contains: '[RECUPERACION]' }, // Usamos la etiqueta para encontrarlo
-              },
-            });
-
-            if (a.estado === 'FALTA') {
-              // Si se corrigió el registro como FALTA, lo borramos
-              if (registroFisicoExistente) {
-                await tx.registros_asistencia.delete({
-                  where: { id: registroFisicoExistente.id },
-                });
-              }
-            } else {
-              if (registroFisicoExistente) {
-                // Si es marcado como PRESENTE y el registro ya existia, solo se actualiza el estado.
-                await tx.registros_asistencia.update({
-                  where: { id: registroFisicoExistente.id },
-                  data: {
-                    estado: a.estado,
-                  },
-                });
-              } else {
-                // Si no existe, lo creamos
-                await tx.registros_asistencia.create({
-                  data: {
-                    inscripcion_id: inscActiva.id,
-                    fecha: recu.fecha_programada,
-                    estado: a.estado,
-                    comentario: `[RECUPERACION] ${a.comentario || ''}`,
-                  },
-                });
-              }
-            }
-          }
-          continue;
-        }
 
         // Si el estado de la asistencia es JUSTIFICADO_LESION, se salta al siguiente alumno.
         const asistencia = await tx.registros_asistencia.findUnique({
           where: { id: Number(a.id) },
         });
-        if (!asistencia || asistencia.estado === 'JUSTIFICADO_LESION') {
-          continue;
-        }
 
         if (esFechaFutura(asistencia.fecha)) {
           throw new Error("No se puede registrar asistencia en una fecha futura.");
         }
 
-        // Si es un alumno fijo, simplemente se actualiza la asistencia
         const asistenciaRegistrada = await tx.registros_asistencia.update({
           where: { id: Number(a.id) },
           data: {
             estado: a.estado,
-            comentario: a.comentario || '',
             registrado_en: new Date(),
           },
           include: {
             inscripciones: true,
           },
         });
-
-        const idAlumnoInscripcion = asistenciaRegistrada.inscripciones.alumno_id;
-        const fechaClase = asistenciaRegistrada.fecha;
-
-        // 🔥 REGLA DE NEGOCIO: Si la clase es [NO_RECUPERABLE], saltamos la generación del ticket de falta.
-        // Lo verificamos desde el objeto 'asistencia' que cargamos de la BD antes del update.
-        const esNoRecuperable = asistencia.comentario?.includes('[NO_RECUPERABLE]');
-
-        // Crea un registro en la tabla recuperaciones con estado PENDIENTE en caso la asistencia sea registrada como FALTA.
-        if (asistenciaRegistrada.estado === 'FALTA' && !esNoRecuperable) {
-          await recuperacionService.registrarFaltaPendiente(
-            tx,
-            idAlumnoInscripcion,
-            fechaClase,
-            asistencia.id
-          );
-        } else if (asistenciaRegistrada.estado === 'PRESENTE') {
-          // En caso el alumno llegue tarde, se elimina la recuperación generada.
-          await recuperacionService.anularFaltaPendiente(tx, idAlumnoInscripcion, asistencia.id);
-        }
-
-        // Si era no recuperable, nos aseguramos de que el tag persista si el coordinador escribió algo
-        if (esNoRecuperable && !asistenciaRegistrada.comentario?.includes('[NO_RECUPERABLE]')) {
-          await tx.registros_asistencia.update({
-            where: { id: asistenciaRegistrada.id },
-            data: { comentario: `[NO_RECUPERABLE] ${asistenciaRegistrada.comentario || ''}` }
-          });
-        }
       }
     });
   },

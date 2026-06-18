@@ -15,12 +15,12 @@ const AttendanceModal = ({ clase, onClose, onRefresh }) => {
             const fechaCorte = fechaInscripcion ? addDays(fechaInscripcion, 29) : null;
 
             // Extraemos fecha de nacimiento desde el objeto que viene del backend
-            const fNac = ins.alumnos?.usuarios?.fecha_nacimiento;
+            const fNac = ins.usuarios?.fecha_nacimiento;
 
             return {
                 asistenciaId: ins.registro_especifico?.id,
-                nombreCompleto: `${ins.alumnos?.usuarios?.nombres} ${ins.alumnos?.usuarios?.apellidos}`,
-                dni: ins.alumnos?.usuarios?.numero_documento,
+                nombreCompleto: `${ins.usuarios?.nombres} ${ins.usuarios?.apellidos}`,
+                dni: ins.usuarios?.numero_documento,
                 fechaNacimiento: fNac ? format(new Date(fNac), "dd/MM/yyyy") : 'N/A',
                 edad: fNac ? differenceInYears(new Date(), new Date(fNac)) : null,
                 estado: ins.registro_especifico?.estado || 'PROGRAMADA',

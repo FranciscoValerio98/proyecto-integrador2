@@ -15,8 +15,7 @@ export const coordinadorService = {
     // Obtener un coordinador específico por ID
     obtenerPorId: async (id) => {
         return await prisma.usuarios.findUnique({
-            where: { id: parseInt(id) },
-            include: { coordinadores: true }
+            where: { id: parseInt(id) }
         });
     },
 
