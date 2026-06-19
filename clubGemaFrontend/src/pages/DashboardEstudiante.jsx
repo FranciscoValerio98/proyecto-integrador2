@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   Calendar, Filter, Loader2, Sparkles,
   ChevronRight, ChevronLeft, RefreshCcw,
-  Users, Gift, HeartPulse, BellOff, Zap, Star, Trophy, Eye, EyeOff
+  Users, Gift, HeartPulse, BellOff, Zap, Star, Trophy, Eye, EyeOff, Mic
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { apiFetch } from "../interceptors/api";
@@ -25,6 +25,11 @@ const IconMap = {
   Trophy: <Trophy size={24} />
 };
 
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = 'es-PE';
+recognition.continuous = true;
+
 // --- DASHBOARD PRINCIPAL ---
 const DashboardEstudiante = () => {
   const { user, userId } = useAuth();
@@ -43,6 +48,10 @@ const DashboardEstudiante = () => {
 
   const [filtroMes, setFiltroMes] = useState("TODOS");
   const [filtroAnio, setFiltroAnio] = useState(new Date().getFullYear().toString());
+
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -116,6 +125,95 @@ const DashboardEstudiante = () => {
     } catch (error) { console.error(error); }
   };
 
+  const hablarTexto = (texto) => {
+    if (!texto) return;
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(texto);
+
+    utterance.lang = 'es-PE';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (e) => {
+      console.error("Error al reproducir audio:", e);
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleVoiceClick = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!isListening) {
+      setIsListening(true);
+      recognition.start();
+
+      recognition.onresult = async (event) => {
+        const textoEscuchado = event.results[0][0].transcript;
+        console.log("Consulta:", textoEscuchado);
+
+        setIsListening(false);
+        setIsProcessing(true);
+
+        try {
+          const res = await apiFetch.post("/asistente/procesar", {
+            texto: textoEscuchado,
+            userId: userId,
+            rol: user?.rol
+          });
+
+          const result = await res.json();
+
+          if (result.success) {
+            console.log("Respuesta IA:", result.data?.respuesta);
+
+            const textoParaHablar = result.data?.respuesta || "No recibí una respuesta válida.";
+
+            setIsProcessing(false);
+            hablarTexto(textoParaHablar);
+          } else {
+            setIsProcessing(false);
+            hablarTexto("No pude procesar la solicitud.");
+          }
+        } catch (error) {
+          console.error("Error comunicándose con el asistente:", error);
+          setIsProcessing(false);
+          hablarTexto("Lo siento, hubo un error al procesar tu solicitud.");
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Error en reconocimiento:", event.error);
+        setIsListening(false);
+        if (event.error === 'no-speech') {
+          hablarTexto("No pude escucharte, ¿puedes repetirlo?");
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+    } else {
+      recognition.stop();
+      setIsListening(false);
+    }
+  }
+
   const firstName = user?.user?.nombres?.split(' ')[0] || "Campeón";
   const initial = firstName.charAt(0).toUpperCase();
 
@@ -142,6 +240,25 @@ const DashboardEstudiante = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleVoiceClick}
+              disabled={isProcessing}
+              title="Pregúntale a tu asistente de voz"
+              className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-300 shadow-sm border ${isListening
+                ? "bg-red-500 text-white border-red-500 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+                : isProcessing
+                  ? "bg-blue-500 text-white border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] cursor-wait"
+                  : isSpeaking
+                    ? "bg-orange-500 text-white border-orange-500 animate-bounce shadow-[0_0_15px_rgba(249,115,22,0.5)]"
+                    : "bg-white text-slate-400 border-slate-200 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50"
+                }`}
+            >
+              {isProcessing ? (
+                <Loader2 size={20} className="animate-spin text-white" />
+              ) : (
+                <Mic size={20} className={isSpeaking ? "animate-pulse" : ""} />
+              )}
+            </button>
             <div className="relative">
               <NotificationBell count={unreadCountDB} onClick={() => setShowNotifList(!showNotifList)} />
               {showNotifList && (
