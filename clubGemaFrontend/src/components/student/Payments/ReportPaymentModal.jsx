@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { X, Send, Loader2, Banknote, Upload, Coins, Copy, CheckCircle2, Landmark, CreditCard, ChevronDown } from "lucide-react";
+import { 
+  X, Send, Loader2, Banknote, Upload, Coins, Copy, 
+  CheckCircle2, Landmark, CreditCard, ChevronDown, ExternalLink 
+} from "lucide-react";
 import apiFetch from "../../../interceptors/api.js";
 import toast from "react-hot-toast";
 import { API_ROUTES } from "../../../constants/apiRoutes.js";
 
 const ReportPaymentModal = ({ isOpen, onClose, debt, onSuccess }) => {
   const [loading, setLoading] = useState(false);
+  const [loadingMP, setLoadingMP] = useState(false); // Estado para el botón de Mercado Pago
   const [voucherFile, setVoucherFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [copiedField, setCopiedField] = useState("");
@@ -38,6 +42,7 @@ const ReportPaymentModal = ({ isOpen, onClose, debt, onSuccess }) => {
 
   if (!isOpen || !debt) return null;
 
+  // 1. Manejo del pago MANUAL (Tu lógica original intacta)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.monto || parseFloat(formData.monto) <= 0) return toast.error("Ingresa un monto válido");
@@ -76,6 +81,40 @@ const ReportPaymentModal = ({ isOpen, onClose, debt, onSuccess }) => {
       toast.error(error.message, { duration: 5000, style: { maxWidth: '500px' } });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 2. NUEVO: Manejo del pago ONLINE con Mercado Pago
+  const handleMercadoPago = async () => {
+    if (!formData.monto || parseFloat(formData.monto) <= 0) {
+      return toast.error("Ingresa un monto válido para pagar online");
+    }
+    
+    setLoadingMP(true);
+    try {
+      const payload = {
+        deuda_id: parseInt(debt.id),
+        monto: parseFloat(formData.monto)
+      };
+
+      // Llamamos a la nueva ruta configurada en tu apiRoutes
+      const response = await apiFetch.post(API_ROUTES.PAGOS.GENERAR_LINK_MP, payload);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al conectar con Mercado Pago");
+      }
+
+      const data = await response.json();
+      
+      // Si todo sale bien, redirigimos a la pasarela de pago
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      }
+
+    } catch (error) {
+      toast.error(error.message, { duration: 5000, style: { maxWidth: '500px' } });
+      setLoadingMP(false); // Solo quitamos el loading si falla
     }
   };
 
@@ -118,7 +157,6 @@ const ReportPaymentModal = ({ isOpen, onClose, debt, onSuccess }) => {
                     <option value="TARJETA">TARJETA CRÉDITO</option>
                     <option value="EFECTIVO">EFECTIVO</option>
                   </select>
-                  {/* 🚩 Ícono de flechita para indicar que es un menú desplegable */}
                   <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 </div>
               </div>
@@ -147,12 +185,37 @@ const ReportPaymentModal = ({ isOpen, onClose, debt, onSuccess }) => {
                </div>
             )}
 
-            <div className="pt-4 flex gap-2 pb-2">
-              <button onClick={onClose} type="button" className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black py-3.5 rounded-xl transition-all uppercase italic text-[9px] tracking-widest active:scale-95">Cancelar</button>
-              <button disabled={loading} className="flex-[2] bg-[#1e3a8a] hover:bg-orange-600 text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20 disabled:opacity-70 disabled:active:scale-100">
-                {loading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
-                <span className="uppercase italic tracking-tighter text-xs">{loading ? "ENVIANDO..." : "REPORTAR PAGO"}</span>
+            {/* BOTONES DE ACCIÓN COMBINADOS */}
+            <div className="pt-4 flex flex-col gap-3 pb-2">
+              
+              {/* Fila 1: Botones de Reporte Manual (Tus originales) */}
+              <div className="flex gap-2">
+                <button onClick={onClose} type="button" disabled={loading || loadingMP} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black py-3.5 rounded-xl transition-all uppercase italic text-[9px] tracking-widest active:scale-95 disabled:opacity-50">Cancelar</button>
+                <button type="submit" disabled={loading || loadingMP} className="flex-[2] bg-[#1e3a8a] hover:bg-orange-600 text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20 disabled:opacity-70 disabled:active:scale-100">
+                  {loading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+                  <span className="uppercase italic tracking-tighter text-xs">{loading ? "ENVIANDO..." : "REPORTAR MANUAL"}</span>
+                </button>
+              </div>
+
+              {/* Separador Visual */}
+              <div className="relative flex items-center py-1">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink-0 mx-4 text-slate-400 text-[9px] font-black uppercase tracking-widest italic">O paga al instante con</span>
+                <div className="flex-grow border-t border-slate-200"></div>
+              </div>
+
+              {/* Fila 2: Nuevo Botón de Mercado Pago */}
+              <button 
+                type="button" 
+                onClick={handleMercadoPago}
+                disabled={loading || loadingMP}
+                className="w-full bg-[#009ee3] hover:bg-[#008cc9] text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-[#009ee3]/30 disabled:opacity-70 disabled:active:scale-100"
+              >
+                {loadingMP ? <Loader2 className="animate-spin" size={18} /> : <CreditCard size={18} />}
+                <span className="uppercase italic tracking-tighter text-sm">Mercado Pago</span>
+                {!loadingMP && <ExternalLink size={14} className="opacity-70" />}
               </button>
+
             </div>
           </form>
         </div>

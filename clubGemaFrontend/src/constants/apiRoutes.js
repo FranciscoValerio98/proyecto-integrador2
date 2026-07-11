@@ -39,6 +39,7 @@ export const API_ROUTES = {
     REPORTAR: "/pagos/reportar",
     VALIDAR: "/pagos/validar",
     DETALLE_MAESTRO: (id) => `/pagos/detalle-maestro/${id}`,
+    GENERAR_LINK_MP: "/pagos/generar-link-mp",
   },
   SEDES: {
     BASE: "/sedes",

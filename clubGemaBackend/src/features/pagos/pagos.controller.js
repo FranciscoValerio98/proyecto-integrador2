@@ -1,6 +1,10 @@
 import { pagosService } from './pagos.service.js';
 import { catchAsync } from '../../shared/utils/catchAsync.util.js';
 import { apiResponse } from '../../shared/utils/response.util.js';
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import { prisma } from '../../config/database.config.js';// Ajusta la ruta si es necesario
+import { mercadoPagoService } from './mercado-pago.service.js';
+const client = new MercadoPagoConfig({ accessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN });
 
 export const pagosController = {
   // 1. REPORTAR PAGO (Con soporte para subida de imagen a Cloudinary)
@@ -163,6 +167,95 @@ export const pagosController = {
         status: 'error',
         message: error.message
       });
+    }
+  },
+ generarLinkMP: async (req, res) => {
+  try {
+    const { deuda_id, monto } = req.body;
+    
+    // 1. Buscamos la deuda en la base de datos
+    const deuda = await prisma.cuentas_por_cobrar.findUnique({ 
+      where: { id: parseInt(deuda_id) } 
+    });
+
+    if (!deuda) {
+      return res.status(404).json({ status: 'error', message: 'Deuda no encontrada' });
+    }
+
+    // 2. Definimos URLs seguras (con fallback por si el .env falla)
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+
+    // 3. Configuramos la preferencia
+    const preference = new Preference(client);
+    
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: deuda.id.toString(),
+            title: `Club Gema - Pago de mensualidad`,
+            quantity: 1,
+            unit_price: Number(monto || deuda.monto_final),
+            currency_id: 'PEN',
+          }
+        ],
+        back_urls: {
+          success: `${frontendUrl}/student/enrollment?status=approved`,
+          failure: `${frontendUrl}/student/enrollment?status=failure`,
+          pending: `${frontendUrl}/student/enrollment?status=pending`,
+        },
+        // Comentamos auto_return para evitar problemas de validación de cuenta
+        // auto_return: 'approved', 
+        notification_url: `${backendUrl}/api/pagos/webhook-mp`,
+        external_reference: deuda.id.toString(),
+      }
+    });
+
+    // 4. Seleccionamos el link: Sandbox si es entorno de prueba, init_point normal si no
+    // Como tu token empieza con APP_USR-... pero estás en desarrollo, 
+  // 4. Forzamos el uso de init_point porque los tokens APP_USR chocan con sandbox
+    const linkDePago = result.init_point;
+
+    console.log("✅ [DEBUG MP] Link generado:", linkDePago);
+
+    res.status(200).json({
+      status: 'success',
+      init_point: linkDePago
+    });
+
+  } catch (error) {
+    console.error('❌ [ERROR MP GENERAR LINK]:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Error al generar link de pago',
+      details: error.message 
+    });
+  }
+},
+
+  // 🔴 Endpoint para el Webhook (Refactorizado)
+  webhookMP: async (req, res) => {
+    try {
+      const { query } = req;
+      const topic = query.topic || query.type;
+
+      if (topic === 'payment') {
+        const paymentId = query['data.id'] || query.id;
+        
+        // Llamamos al SERVICIO para que consulte a MP y actualice la BD
+        const resultado = await mercadoPagoService.verificarYActualizarPago(paymentId);
+        
+        if (resultado.success) {
+          console.log(`✅ [WEBHOOK MP] Pago ${paymentId} procesado con éxito para deuda ${resultado.deuda_id}`);
+        }
+      }
+      
+      // Siempre debemos responder 200 rápido a Mercado Pago
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('❌ [ERROR WEBHOOK MP]:', error);
+      res.status(500).send('Error');
     }
   },
 };

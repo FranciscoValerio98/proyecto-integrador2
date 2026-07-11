@@ -45,5 +45,10 @@ router.delete('/:id', pagosController.eliminarPago);
 // --- NUEVO ENDPOINT PARA EL MODAL (Búsqueda Profunda) ---
 // Ponlo arriba para que no choque con el de /:id genérico
 router.get('/detalle-maestro/:id', pagosController.obtenerDetalle);
+// 1. Ruta para generar el link (La llama el frontend, puede llevar tu middleware de autenticación)
+router.post('/generar-link-mp', upload.none(), pagosController.generarLinkMP);
+
+// 2. Ruta del Webhook (¡OJO! Esta NO debe llevar middleware de validación JWT porque la llama Mercado Pago directamente)
+router.post('/webhook-mp', pagosController.webhookMP);
 
 export default router;
